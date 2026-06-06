@@ -1,0 +1,682 @@
+@{
+    ViewData["Title"] = "Enseignants";
+    ViewData["ActivePage"] = "Enseignant";
+}
+
+<div class="enseignants-page">
+
+    <!-- En-tête de page -->
+    <div class="page-header-emit">
+        <div class="page-header-left">
+            <div class="page-icon-wrap ens-icon-wrap">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <h1 class="page-title-emit">Enseignants</h1>
+                <p class="page-subtitle-emit">Corps enseignant et leurs matières assignées</p>
+            </div>
+        </div>
+        <div class="page-header-actions">
+            <span id="ensCount" class="ens-count-badge" aria-live="polite"></span>
+        </div>
+    </div>
+
+    <!-- Barre de recherche -->
+    <div class="search-bar-wrap mb-4">
+        <div class="emit-search-group">
+            <i class="bi bi-search emit-search-icon"></i>
+            <input
+                type="search"
+                id="ensSearch"
+                class="emit-search-input"
+                placeholder="Rechercher par nom, prénom ou matière…"
+                autocomplete="off"
+                aria-label="Rechercher un enseignant"
+            />
+            <button class="emit-search-clear" id="btnSearchClear" aria-label="Effacer la recherche" style="display:none;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <!--Message état vide / erreur -->
+    <div id="ensEmptyState" class="ens-empty-state" style="display:none;" aria-live="polite">
+        <i class="bi bi-person-x-fill ens-empty-icon"></i>
+        <p class="ens-empty-title">Aucun enseignant trouvé</p>
+        <p class="ens-empty-sub" id="ensEmptyMsg">Aucun résultat ne correspond à votre recherche.</p>
+    </div>
+
+    <div id="ensErrState" class="ens-err-state" style="display:none;" aria-live="assertive">
+        <i class="bi bi-exclamation-triangle-fill me-2" style="color:var(--danger)"></i>
+        <span id="ensErrMsg">Une erreur est survenue lors du chargement.</span>
+        <button id="btnRetry" class="btn-emit-ghost ms-3">
+            <i class="bi bi-arrow-clockwise me-1"></i>Réessayer
+        </button>
+    </div>
+
+    <!--Grille — skeletons puis cartes-->
+    <div id="enseignantsGrid" class="enseignants-grid" aria-label="Liste des enseignants">
+
+        <!-- Skeleton loaders (affichés pendant le chargement) -->
+        <div class="skeleton-enseignant-card" data-skeleton>
+            <div class="sk-avatar skeleton-loader"></div>
+            <div class="sk-line sk-line--short skeleton-loader"></div>
+            <div class="sk-line sk-line--med skeleton-loader"></div>
+            <div class="sk-badges">
+                <div class="sk-badge skeleton-loader"></div>
+                <div class="sk-badge skeleton-loader"></div>
+            </div>
+            <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+        </div>
+        <div class="skeleton-enseignant-card" data-skeleton>
+            <div class="sk-avatar skeleton-loader"></div>
+            <div class="sk-line sk-line--short skeleton-loader"></div>
+            <div class="sk-line sk-line--med skeleton-loader"></div>
+            <div class="sk-badges">
+                <div class="sk-badge skeleton-loader"></div>
+                <div class="sk-badge skeleton-loader"></div>
+                <div class="sk-badge skeleton-loader"></div>
+            </div>
+            <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+        </div>
+        <div class="skeleton-enseignant-card" data-skeleton>
+            <div class="sk-avatar skeleton-loader"></div>
+            <div class="sk-line sk-line--short skeleton-loader"></div>
+            <div class="sk-line sk-line--med skeleton-loader"></div>
+            <div class="sk-badges">
+                <div class="sk-badge skeleton-loader"></div>
+            </div>
+            <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+        </div>
+        <div class="skeleton-enseignant-card" data-skeleton>
+            <div class="sk-avatar skeleton-loader"></div>
+            <div class="sk-line sk-line--short skeleton-loader"></div>
+            <div class="sk-line sk-line--med skeleton-loader"></div>
+            <div class="sk-badges">
+                <div class="sk-badge skeleton-loader"></div>
+                <div class="sk-badge skeleton-loader"></div>
+            </div>
+            <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+        </div>
+
+    </div><!-- /#enseignantsGrid -->
+
+</div><!-- /.enseignants-page -->
+
+<!-- Styles — Enseignant/Index-->
+<style>
+    /* ── Page wrapper ── */
+    .enseignants-page {
+        padding: 1.5rem;
+    }
+
+    /* ── Icône en-tête ── */
+    .ens-icon-wrap {
+        background: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+
+    /* ── Badge compteur ── */
+    .ens-count-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: rgba(115, 185, 230, 0.1);
+        border: 1px solid rgba(115, 185, 230, 0.2);
+        border-radius: 20px;
+        padding: 0.35rem 0.9rem;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        font-weight: 500;
+    }
+
+    /* ── Barre de recherche ── */
+    .search-bar-wrap {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .emit-search-group {
+        position: relative;
+        flex: 1;
+        max-width: 480px;
+    }
+    .emit-search-icon {
+        position: absolute;
+        left: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        pointer-events: none;
+    }
+    .emit-search-input {
+        width: 100%;
+        background: rgba(23, 37, 84, 0.5);
+        border: 1px solid rgba(115, 185, 230, 0.2);
+        border-radius: 10px;
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        font-size: 0.88rem;
+        padding: 0.65rem 2.5rem 0.65rem 2.4rem;
+        outline: none;
+        transition: var(--transition);
+    }
+    .emit-search-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(115, 185, 230, 0.15);
+        background: rgba(23, 37, 84, 0.7);
+    }
+    .emit-search-input::placeholder { color: var(--text-muted); }
+    .emit-search-input::-webkit-search-cancel-button { display: none; }
+    .emit-search-clear {
+        position: absolute;
+        right: 0.6rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.78rem;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+    .emit-search-clear:hover { color: var(--text-primary); }
+
+    /* ── États vide / erreur ── */
+    .ens-empty-state {
+        text-align: center;
+        padding: 3.5rem 1rem;
+        color: var(--text-muted);
+    }
+    .ens-empty-icon {
+        font-size: 3rem;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 1rem;
+    }
+    .ens-empty-title {
+        font-size: 1.05rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.3rem;
+    }
+    .ens-empty-sub {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin: 0;
+    }
+    .ens-err-state {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        border-radius: var(--radius);
+        font-size: 0.88rem;
+        color: var(--text-primary);
+        margin-bottom: 1rem;
+    }
+
+    /* ── Grille ── */
+    .enseignants-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.25rem;
+    }
+
+    /* ── Carte enseignant ── */
+    .enseignant-card {
+        background: var(--bg-surface);
+        border: 1px solid rgba(115, 185, 230, 0.1);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow-card);
+        padding: 1.75rem 1.5rem 1.4rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 0;
+        transition: var(--transition);
+        position: relative;
+        overflow: hidden;
+    }
+    .enseignant-card::before {
+        /* Bande décorative en haut */
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--ens-color, var(--accent)), transparent);
+        border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .enseignant-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+        border-color: rgba(115, 185, 230, 0.25);
+    }
+
+    /* ── Avatar CSS (initiales) ── */
+    .ens-avatar {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(
+            135deg,
+            var(--ens-color, var(--accent)) 0%,
+            var(--bg-surface-2) 100%
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #fff;
+        letter-spacing: 0.03em;
+        margin-bottom: 1rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3),
+                    0 0 0 3px rgba(255, 255, 255, 0.06);
+        flex-shrink: 0;
+        user-select: none;
+    }
+
+    /* ── Texte identité ── */
+    .ens-nom {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
+    }
+    .ens-prenom {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+    }
+    .ens-email {
+        font-size: 0.75rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+        opacity: 0.75;
+    }
+
+    /* ── Séparateur ── */
+    .ens-divider {
+        width: 100%;
+        height: 1px;
+        background: rgba(115, 185, 230, 0.1);
+        margin-bottom: 0.9rem;
+    }
+
+    /* ── Badges matières ── */
+    .ens-matieres {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.4rem;
+        margin-bottom: 1.2rem;
+        min-height: 26px;
+    }
+    .matiere-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        padding: 0.2rem 0.65rem;
+        border-radius: 20px;
+        font-size: 0.73rem;
+        font-weight: 500;
+        background: rgba(115, 185, 230, 0.12);
+        border: 1px solid rgba(115, 185, 230, 0.2);
+        color: var(--accent);
+        white-space: nowrap;
+        transition: background 0.2s;
+    }
+    .matiere-badge:hover {
+        background: rgba(115, 185, 230, 0.22);
+    }
+    .matiere-badge i {
+        font-size: 0.68rem;
+        opacity: 0.8;
+    }
+    .matiere-badge-more {
+        background: rgba(148, 163, 184, 0.12);
+        border-color: rgba(148, 163, 184, 0.2);
+        color: var(--text-muted);
+    }
+
+    /* ── Actions ── */
+    .enseignant-card-actions {
+        width: 100%;
+        display: flex;
+        gap: 0.6rem;
+        margin-top: auto;
+    }
+    .btn-voir-planning {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+        padding: 0.6rem 1rem;
+        background: var(--accent);
+        color: var(--bg-primary);
+        border: none;
+        border-radius: 8px;
+        font-family: var(--font-main);
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(115, 185, 230, 0.2);
+        white-space: nowrap;
+    }
+    .btn-voir-planning:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(115, 185, 230, 0.4);
+        color: var(--bg-primary);
+        text-decoration: none;
+    }
+
+    /* ── Animation entrée des cartes ── */
+    @@keyframes card-enter {
+        from { opacity: 0; transform: translateY(12px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .enseignant-card {
+        animation: card-enter 0.3s ease both;
+    }
+
+    /* ── Highlight recherche ── */
+    .ens-highlight {
+        background: rgba(251, 191, 36, 0.3);
+        border-radius: 3px;
+        color: var(--text-primary);
+        padding: 0 1px;
+    }
+
+    /* ── Responsive : tablette ── */
+    @@media (max-width: 992px) {
+        .enseignants-page { padding: 1rem; }
+    }
+    @@media (max-width: 576px) {
+        .enseignants-page { padding: 0.75rem; }
+        .emit-search-group { max-width: 100%; }
+    }
+</style>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    /*PALETTE DE COULEURS — une par enseignant */
+    const ENS_COLORS = [
+        '#73B9E6', /* accent bleu   */
+        '#34D399', /* vert success  */
+        '#A78BFA', /* violet        */
+        '#FB923C', /* orange        */
+        '#F87171', /* rouge         */
+        '#38BDF8', /* bleu clair    */
+        '#FBBF24', /* jaune         */
+        '#4ADE80', /* vert clair    */
+    ];
+
+    /* ÉTAT LOCAL */
+    let _allData   = [];   /* données complètes reçues de MockAPI */
+    let _filtered  = [];   /* données filtrées par la recherche   */
+
+    /* REFS DOM */
+    const grid        = document.getElementById('enseignantsGrid');
+    const searchInput = document.getElementById('ensSearch');
+    const btnClear    = document.getElementById('btnSearchClear');
+    const emptyState  = document.getElementById('ensEmptyState');
+    const emptyMsg    = document.getElementById('ensEmptyMsg');
+    const errState    = document.getElementById('ensErrState');
+    const errMsg      = document.getElementById('ensErrMsg');
+    const btnRetry    = document.getElementById('btnRetry');
+    const ensCount    = document.getElementById('ensCount');
+
+    /* UTILITAIRES */
+
+    /** Initiales à partir du prénom + nom */
+    function getInitiales(prenom, nom) {
+        const p = (prenom || '').trim()[0] || '';
+        const n = (nom || '').trim()[0] || '';
+        return (p + n).toUpperCase();
+    }
+
+    /** Couleur déterministe par id */
+    function getColor(id) {
+        return ENS_COLORS[(id - 1) % ENS_COLORS.length];
+    }
+
+    /** Échappe les caractères HTML */
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    /** Met en surbrillance un terme dans une chaîne (retourne HTML) */
+    function highlight(text, term) {
+        if (!term) return escHtml(text);
+        const escaped = term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escaped})`, 'gi');
+        return escHtml(text).replace(regex, '<mark class="ens-highlight">$1</mark>');
+    }
+
+    /** Retire les skeletons */
+    function removeSkeletons() {
+        grid.querySelectorAll('[data-skeleton]').forEach(el => el.remove());
+    }
+
+    /* RENDU D'UNE CARTE ENSEIGNANT */
+    function buildCard(ens, term, index) {
+        const color     = getColor(ens.id);
+        const initiales = getInitiales(ens.prenom, ens.nom);
+        const matieres  = Array.isArray(ens.matieres) ? ens.matieres : [];
+
+        /* Badges matières : max 3 affichés, le reste en "+N" */
+        const MAX_BADGES = 3;
+        const visibleMatieres = matieres.slice(0, MAX_BADGES);
+        const extraCount = matieres.length - MAX_BADGES;
+
+        const badgesHtml = visibleMatieres.map(m => `
+            <span class="matiere-badge">
+                <i class="bi bi-journal-code"></i>
+                ${highlight(m, term)}
+            </span>`).join('');
+
+        const extraHtml = extraCount > 0
+            ? `<span class="matiere-badge matiere-badge-more" title="${matieres.slice(MAX_BADGES).join(', ')}">
+                   +${extraCount}
+               </span>`
+            : '';
+
+        /* Highlight sur nom et prénom */
+        const nomHl    = highlight(ens.nom,    term);
+        const prenomHl = highlight(ens.prenom, term);
+
+        /* Email si présent */
+        const emailHtml = ens.email
+            ? `<span class="ens-email">
+                   <i class="bi bi-envelope-fill"></i>
+                   ${escHtml(ens.email)}
+               </span>`
+            : '';
+
+        const card = document.createElement('article');
+        card.className = 'enseignant-card';
+        card.style.setProperty('--ens-color', color);
+        card.style.animationDelay = `${index * 60}ms`;
+        card.setAttribute('data-id', ens.id);
+        card.setAttribute('role', 'article');
+        card.setAttribute('aria-label', `Enseignant ${ens.prenom} ${ens.nom}`);
+
+        card.innerHTML = `
+            <!-- Avatar initiales -->
+            <div class="ens-avatar" aria-hidden="true"
+                 style="--ens-color:${color}">
+                ${escHtml(initiales)}
+            </div>
+
+            <!-- Identité -->
+            <p class="ens-nom">${nomHl}</p>
+            <p class="ens-prenom">${prenomHl}</p>
+            ${emailHtml}
+
+            <!-- Séparateur -->
+            <div class="ens-divider" aria-hidden="true"></div>
+
+            <!-- Matières -->
+            <div class="ens-matieres" aria-label="Matières enseignées">
+                ${badgesHtml}${extraHtml}
+                ${matieres.length === 0 ? '<span class="matiere-badge matiere-badge-more">Aucune matière</span>' : ''}
+            </div>
+
+            <!-- Actions -->
+            <div class="enseignant-card-actions">
+                <a href="/Planning?enseignantId=${ens.id}"
+                   class="btn-voir-planning"
+                   aria-label="Voir le planning de ${escHtml(ens.prenom)} ${escHtml(ens.nom)}">
+                    <i class="bi bi-calendar3-week-fill"></i>
+                    Voir planning
+                </a>
+            </div>`;
+
+        return card;
+    }
+
+    /* AFFICHAGE DE LA GRILLE */
+    function renderGrid(data, term) {
+        /* Retire les cartes existantes (pas les skeletons, déjà retirés) */
+        grid.querySelectorAll('.enseignant-card').forEach(el => el.remove());
+
+        /* État vide */
+        if (data.length === 0) {
+            emptyState.style.display = 'block';
+            emptyMsg.textContent = term
+                ? `Aucun enseignant ne correspond à « ${term} ».`
+                : 'Aucun enseignant enregistré pour le moment.';
+            ensCount.textContent = '';
+            return;
+        }
+
+        emptyState.style.display = 'none';
+
+        /* Compteur */
+        const total = _allData.length;
+        const shown = data.length;
+        ensCount.innerHTML = `<i class="bi bi-people-fill me-1"></i>${shown === total ? total : shown + ' / ' + total} enseignant${total > 1 ? 's' : ''}`;
+
+        /* Insertion des cartes */
+        const fragment = document.createDocumentFragment();
+        data.forEach((ens, i) => fragment.appendChild(buildCard(ens, term, i)));
+        grid.appendChild(fragment);
+    }
+
+    /* FILTRAGE INSTANTANÉ*/
+    function applyFilter(term) {
+        const t = term.trim().toLowerCase();
+
+        if (!t) {
+            _filtered = _allData;
+        } else {
+            _filtered = _allData.filter(ens => {
+                const nomFull = (ens.nom + ' ' + ens.prenom).toLowerCase();
+                const matieres = (ens.matieres || []).join(' ').toLowerCase();
+                const email = (ens.email || '').toLowerCase();
+                return nomFull.includes(t) || matieres.includes(t) || email.includes(t);
+            });
+        }
+
+        renderGrid(_filtered, t);
+    }
+
+    /* CHARGEMENT VIA MockAPI */
+    async function loadEnseignants() {
+        /* Réinitialise l'état d'erreur */
+        errState.style.display  = 'none';
+        emptyState.style.display = 'none';
+
+        try {
+            const data = await window.MockAPI.getEnseignants();
+            _allData  = data;
+            _filtered = data;
+
+            removeSkeletons();
+            renderGrid(data, searchInput.value.trim());
+
+        } catch (err) {
+            removeSkeletons();
+            errState.style.display = 'flex';
+            errMsg.textContent = 'Impossible de charger la liste des enseignants. Vérifiez votre connexion.';
+            console.error('[Enseignant/Index]', err);
+        }
+    }
+
+    /* ÉVÉNEMENTS */
+
+    /* Recherche instantanée */
+    searchInput.addEventListener('input', function () {
+        const val = this.value;
+        btnClear.style.display = val.length > 0 ? 'block' : 'none';
+        applyFilter(val);
+    });
+
+    /* Effacer la recherche */
+    btnClear.addEventListener('click', function () {
+        searchInput.value = '';
+        this.style.display = 'none';
+        searchInput.focus();
+        applyFilter('');
+    });
+
+    /* Réessayer en cas d'erreur */
+    btnRetry.addEventListener('click', function () {
+        /* Réaffiche les skeletons */
+        grid.innerHTML = `
+            <div class="skeleton-enseignant-card" data-skeleton>
+                <div class="sk-avatar skeleton-loader"></div>
+                <div class="sk-line sk-line--short skeleton-loader"></div>
+                <div class="sk-line sk-line--med skeleton-loader"></div>
+                <div class="sk-badges"><div class="sk-badge skeleton-loader"></div><div class="sk-badge skeleton-loader"></div></div>
+                <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+            </div>
+            <div class="skeleton-enseignant-card" data-skeleton>
+                <div class="sk-avatar skeleton-loader"></div>
+                <div class="sk-line sk-line--short skeleton-loader"></div>
+                <div class="sk-line sk-line--med skeleton-loader"></div>
+                <div class="sk-badges"><div class="sk-badge skeleton-loader"></div></div>
+                <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
+            </div>`;
+        loadEnseignants();
+    });
+
+    /* INIT*/
+    document.addEventListener('DOMContentLoaded', function () {
+        loadEnseignants();
+
+        /* Lire le paramètre enseignantId dans l'URL (depuis "Voir planning") */
+        const params = new URLSearchParams(window.location.search);
+        const ensId  = params.get('enseignantId');
+        if (ensId) {
+            /* Pré-filtre si on revient du planning avec un ID */
+            searchInput.value = '';
+        }
+    });
+
+})();
+</script>
+}

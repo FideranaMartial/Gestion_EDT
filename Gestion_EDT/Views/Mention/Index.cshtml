@@ -1,0 +1,600 @@
+@* *@
+@{
+    ViewData["Title"] = "Mentions";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Styles {
+<style>
+/* ─── PAGE LAYOUT ─── */
+.mentions-root {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 24px;
+}
+
+/* ─── TOOLBAR ─── */
+.mentions-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.mentions-toolbar .search-emit {
+    flex: 1;
+    min-width: 220px;
+    max-width: 380px;
+}
+
+.search-emit input::placeholder {
+    color: rgba(148,163,184,0.45);
+}
+
+.toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.mentions-count {
+    font-size: 13px;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.mentions-count strong {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+/* ─── TABLE CARD ─── */
+.table-card {
+    background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
+    border: 1px solid rgba(115,185,230,0.12);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.table-responsive-emit {
+    overflow-x: auto;
+}
+
+/* ─── SKELETON TABLEAU ─── */
+.table-skel-row {
+    display: grid;
+    grid-template-columns: 48px 1fr 160px 110px;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 16px;
+    border-bottom: 1px solid rgba(115,185,230,0.07);
+}
+
+.table-skel-row:last-child {
+    border-bottom: none;
+}
+
+/* ─── NUMÉRO DE LIGNE ─── */
+.row-index {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: center;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    background: rgba(115,185,230,0.07);
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+/* ─── CELL NOM ─── */
+.cell-nom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nom-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+    letter-spacing: -0.5px;
+}
+
+.nom-avatar.licence  { background: rgba(115,185,230,0.15); color: var(--accent); }
+.nom-avatar.master   { background: rgba(167,139,250,0.15); color: #A78BFA; }
+.nom-avatar.doctorat { background: rgba(251,191,36,0.15);  color: var(--warning); }
+
+.nom-text strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.nom-text span {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ─── BADGES NIVEAU ─── */
+.badge-niveau {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+
+.badge-niveau.licence {
+    background: rgba(115,185,230,0.14);
+    color: var(--accent);
+    border: 1px solid rgba(115,185,230,0.25);
+}
+
+.badge-niveau.master {
+    background: rgba(167,139,250,0.14);
+    color: #A78BFA;
+    border: 1px solid rgba(167,139,250,0.25);
+}
+
+.badge-niveau.doctorat {
+    background: rgba(251,191,36,0.12);
+    color: var(--warning);
+    border: 1px solid rgba(251,191,36,0.25);
+}
+
+/* ─── ACTIONS CELL ─── */
+.actions-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* ─── LIGNE EN SUPPRESSION ─── */
+.mention-row {
+    transition: background 0.2s ease, opacity 0.3s ease, transform 0.3s ease;
+}
+
+.mention-row.deleting {
+    opacity: 0;
+    transform: translateX(20px);
+    pointer-events: none;
+}
+
+.mention-row.highlight-new {
+    animation: highlightRow 1.2s ease forwards;
+}
+
+@@keyframes highlightRow {
+    0%   { background: rgba(52,211,153,0.12); }
+    100% { background: transparent; }
+}
+
+/* ─── EMPTY STATE ─── */
+.table-empty {
+    padding: 56px 24px;
+    text-align: center;
+}
+
+/* ─── FILTRE VIDE ─── */
+.search-no-result {
+    display: none;
+    padding: 32px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+.search-no-result i {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 10px;
+    color: rgba(148,163,184,0.3);
+}
+
+/* ─── RESPONSIVE ─── */
+@@media (max-width: 640px) {
+    .table-emit thead th:nth-child(3),
+    .table-emit tbody td:nth-child(3) {
+        display: none;
+    }
+    .toolbar-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .mentions-count {
+        display: none;
+    }
+}
+</style>
+}
+
+<div class="mentions-root animate-fadein">
+
+    @* ── En-tête ── *@
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+        <div>
+            <h1 style="font-size:22px;font-weight:700;color:var(--text-primary);margin-bottom:3px;">
+                Gestion des Mentions
+            </h1>
+            <p style="font-size:13px;color:var(--text-muted);">
+                Créez et gérez les filières universitaires proposées par l'établissement.
+            </p>
+        </div>
+        <a href="/Mention/Create" class="btn-primary-emit" title="Ajouter une nouvelle mention">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            Nouvelle mention
+        </a>
+    </div>
+
+    @* ── Toolbar ── *@
+    <div class="mentions-toolbar">
+        <div class="search-emit">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input
+                type="search"
+                id="search-input"
+                class="form-control-emit"
+                placeholder="Rechercher une mention…"
+                autocomplete="off"
+                aria-label="Rechercher parmi les mentions"
+                style="padding-left:40px;" />
+        </div>
+
+        <div class="toolbar-actions">
+            <span class="mentions-count" id="mentions-count" aria-live="polite">
+                Chargement…
+            </span>
+            <button type="button" class="btn-secondary-emit" id="btn-filter-all"
+                    data-filter="all" title="Tous les niveaux">
+                <i class="bi bi-funnel"></i> Tous
+            </button>
+            <button type="button" class="btn-icon-emit" id="btn-filter-licence"
+                    data-filter="Licence" title="Filtrer Licence" style="width:auto;padding:7px 12px;font-size:12px;">
+                Licence
+            </button>
+            <button type="button" class="btn-icon-emit" id="btn-filter-master"
+                    data-filter="Master" title="Filtrer Master" style="width:auto;padding:7px 12px;font-size:12px;">
+                Master
+            </button>
+            <button type="button" class="btn-icon-emit" id="btn-filter-doctorat"
+                    data-filter="Doctorat" title="Filtrer Doctorat" style="width:auto;padding:7px 12px;font-size:12px;">
+                Doctorat
+            </button>
+        </div>
+    </div>
+
+    @* ── Table Card ── *@
+    <div class="table-card">
+
+        @* Skeleton initial *@
+        <div id="table-skeleton" aria-hidden="true">
+            <div style="padding:14px 16px;border-bottom:1px solid rgba(115,185,230,0.1);">
+                <div class="skeleton" style="height:10px;width:120px;border-radius:3px;"></div>
+            </div>
+            @for (int i = 0; i < 4; i++) {
+                <div class="table-skel-row">
+                    <div class="skeleton" style="width:32px;height:32px;border-radius:8px;"></div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="skeleton" style="width:38px;height:38px;border-radius:10px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton" style="height:12px;width:60%;margin-bottom:7px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:9px;width:40%;border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton" style="height:26px;width:80px;border-radius:20px;"></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        @* Table réelle *@
+        <div id="table-real" style="display:none;">
+            <div class="table-responsive-emit">
+                <table class="table-emit" id="mentions-table" aria-label="Liste des mentions universitaires">
+                    <thead>
+                        <tr>
+                            <th style="width:52px;text-align:center;">#</th>
+                            <th>Nom de la mention</th>
+                            <th style="width:160px;">Niveau</th>
+                            <th style="width:120px;text-align:right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mentions-tbody">
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="search-no-result" id="no-result" role="alert">
+                <i class="bi bi-search"></i>
+                Aucune mention ne correspond à votre recherche.
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    /* ── État global ── */
+    let _allMentions = [];
+    let _activeFilter = 'all';
+    let _searchQuery  = '';
+
+    /* ── Helpers ── */
+    function esc(s) { return window._emitEscapeHtml ? window._emitEscapeHtml(String(s ?? '')) : String(s ?? ''); }
+
+    function getNiveauClass(niveau) {
+        if (!niveau) return 'licence';
+        const n = niveau.toLowerCase();
+        if (n === 'master')   return 'master';
+        if (n === 'doctorat') return 'doctorat';
+        return 'licence';
+    }
+
+    function getNiveauIcon(niveau) {
+        if (!niveau) return 'bi-bookmark';
+        const n = niveau.toLowerCase();
+        if (n === 'master')   return 'bi-bookmark-star-fill';
+        if (n === 'doctorat') return 'bi-trophy-fill';
+        return 'bi-bookmark-fill';
+    }
+
+    function getInitials(nom) {
+        if (!nom) return '?';
+        const parts = nom.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    /* ── Construction d'une ligne <tr> ── */
+    function buildRow(mention, index) {
+        const cls  = getNiveauClass(mention.niveau);
+        const icon = getNiveauIcon(mention.niveau);
+        const init = getInitials(mention.nom);
+
+        return `
+        <tr class="mention-row"
+            data-id="${esc(mention.id)}"
+            data-nom="${esc(mention.nom.toLowerCase())}"
+            data-niveau="${esc((mention.niveau || '').toLowerCase())}"
+            role="row">
+            <td style="text-align:center;">
+                <div class="row-index">${index + 1}</div>
+            </td>
+            <td>
+                <div class="cell-nom">
+                    <div class="nom-avatar ${cls}" aria-hidden="true">${esc(init)}</div>
+                    <div class="nom-text">
+                        <strong>${esc(mention.nom)}</strong>
+                        <span>Mention #${esc(mention.id)}</span>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <span class="badge-niveau ${cls}">
+                    <i class="bi ${icon}" aria-hidden="true"></i>
+                    ${esc(mention.niveau)}
+                </span>
+            </td>
+            <td>
+                <div class="actions-cell">
+                    <a href="/Mention/Edit?id=${esc(mention.id)}"
+                       class="btn-icon-emit"
+                       title="Modifier ${esc(mention.nom)}"
+                       aria-label="Modifier la mention ${esc(mention.nom)}">
+                        <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                    </a>
+                    <button type="button"
+                            class="btn-icon-emit danger btn-delete"
+                            data-id="${esc(mention.id)}"
+                            data-nom="${esc(mention.nom)}"
+                            title="Supprimer ${esc(mention.nom)}"
+                            aria-label="Supprimer la mention ${esc(mention.nom)}">
+                        <i class="bi bi-trash3-fill" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+    }
+
+    /* ── Rendu du tableau ── */
+    function renderTable(mentions) {
+        const tbody   = document.getElementById('mentions-tbody');
+        const noRes   = document.getElementById('no-result');
+        const countEl = document.getElementById('mentions-count');
+
+        if (!tbody) return;
+
+        if (mentions.length === 0) {
+            tbody.innerHTML = '';
+            if (noRes) noRes.style.display = 'block';
+            if (countEl) countEl.innerHTML = '<strong>0</strong> résultat';
+            return;
+        }
+
+        if (noRes) noRes.style.display = 'none';
+        tbody.innerHTML = mentions.map((m, i) => buildRow(m, i)).join('');
+
+        const total = mentions.length;
+        const of    = _allMentions.length;
+        if (countEl) {
+            countEl.innerHTML = total === of
+                ? `<strong>${total}</strong> mention${total > 1 ? 's' : ''}`
+                : `<strong>${total}</strong> / ${of} mention${of > 1 ? 's' : ''}`;
+        }
+    }
+
+    /* ── Filtrage combiné recherche + niveau ── */
+    function applyFilters() {
+        let result = _allMentions.slice();
+
+        if (_activeFilter !== 'all') {
+            result = result.filter(m => (m.niveau || '').toLowerCase() === _activeFilter.toLowerCase());
+        }
+
+        if (_searchQuery.trim()) {
+            const q = _searchQuery.trim().toLowerCase();
+            result = result.filter(m =>
+                m.nom.toLowerCase().includes(q) ||
+                (m.niveau || '').toLowerCase().includes(q)
+            );
+        }
+
+        renderTable(result);
+    }
+
+    /* ── Suppression ── */
+    async function handleDelete(btn) {
+        const id  = parseInt(btn.dataset.id, 10);
+        const nom = btn.dataset.nom || 'cette mention';
+
+        const confirmed = await window.showConfirmModal({
+            title:        'Supprimer la mention',
+            message:      `Voulez-vous vraiment supprimer la mention <strong>"${esc(nom)}"</strong> ?<br>
+                           <small style="color:var(--warning);margin-top:8px;display:block;">
+                               <i class="bi bi-exclamation-triangle-fill" style="margin-right:4px;"></i>
+                               Cette action est irréversible. Les parcours associés seront affectés.
+                           </small>`,
+            confirmText:  'Supprimer',
+            cancelText:   'Annuler',
+            confirmClass: 'btn-danger-emit',
+            icon:         'bi-trash3-fill',
+        });
+
+        if (!confirmed) return;
+
+        try {
+            await window.fetchWithSpinner(btn, window.MockAPI.deleteMention(id));
+
+            /* Retrait animé de la ligne */
+            const row = document.querySelector(`.mention-row[data-id="${id}"]`);
+            if (row) {
+                row.classList.add('deleting');
+                row.addEventListener('transitionend', () => {
+                    row.remove();
+                    /* Mise à jour du tableau local */
+                    _allMentions = _allMentions.filter(m => m.id !== id);
+                    applyFilters();
+                }, { once: true });
+                /* Fallback */
+                setTimeout(() => { if (row.parentNode) { row.remove(); _allMentions = _allMentions.filter(m => m.id !== id); applyFilters(); } }, 400);
+            } else {
+                _allMentions = _allMentions.filter(m => m.id !== id);
+                applyFilters();
+            }
+
+            window.showToast(`La mention "${nom}" a été supprimée.`, 'success', 'Suppression réussie');
+
+        } catch (err) {
+            window.handleApiError(err, 'deleteMention');
+        }
+    }
+
+    /* ── Délégation des clics de suppression ── */
+    function initDeleteDelegation() {
+        const tbody = document.getElementById('mentions-tbody');
+        if (!tbody) return;
+        tbody.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-delete');
+            if (btn) handleDelete(btn);
+        });
+    }
+
+    /* ── Recherche instantanée ── */
+    function initSearch() {
+        const input = document.getElementById('search-input');
+        if (!input) return;
+        input.addEventListener('input', () => {
+            _searchQuery = input.value;
+            applyFilters();
+        });
+    }
+
+    /* ── Filtres par niveau ── */
+    function initFilterButtons() {
+        const btns = document.querySelectorAll('[data-filter]');
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                _activeFilter = btn.dataset.filter;
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                applyFilters();
+            });
+        });
+        /* Actif par défaut */
+        const allBtn = document.querySelector('[data-filter="all"]');
+        if (allBtn) allBtn.classList.add('active');
+    }
+
+    /* ── Chargement initial ── */
+    async function loadMentions() {
+        try {
+            const mentions = await window.MockAPI.getMentions();
+            _allMentions   = mentions;
+
+            /* Cache skeleton, affiche table */
+            const skel = document.getElementById('table-skeleton');
+            const real = document.getElementById('table-real');
+            if (skel) skel.style.display = 'none';
+            if (real) real.style.display = 'block';
+
+            applyFilters();
+
+        } catch (err) {
+            window.handleApiError(err, 'getMentions');
+
+            /* Afficher message d'erreur dans la table */
+            const skel = document.getElementById('table-skeleton');
+            if (skel) {
+                skel.innerHTML = `
+                <div style="padding:40px;text-align:center;color:var(--danger);">
+                    <i class="bi bi-wifi-off" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p style="font-size:14px;">Impossible de charger les mentions. Rechargez la page.</p>
+                </div>`;
+            }
+        }
+    }
+
+    /* ── Init ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMentions();
+        initSearch();
+        initFilterButtons();
+        initDeleteDelegation();
+
+        /* Message succès depuis Create/Edit */
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('created') === '1') {
+            window.showToast('Mention créée avec succès.', 'success', 'Création réussie');
+        }
+        if (params.get('updated') === '1') {
+            window.showToast('Mention mise à jour avec succès.', 'success', 'Modification réussie');
+        }
+    });
+
+})();
+</script>
+}

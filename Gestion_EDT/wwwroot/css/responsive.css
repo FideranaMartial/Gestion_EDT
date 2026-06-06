@@ -1,0 +1,418 @@
+/* ═══════════════════════════════════════════════════════════════════
+   EMIT — responsive.css
+   Ordre de chargement : après site.css, avant les scripts
+   Breakpoints : tablette ≤ 992px | mobile ≤ 576px
+═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   1. TABLETTE — ≤ 992px
+   Sidebar réduite à 70px icônes seules, grilles rembobinées en 2 col
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 992px) {
+
+  /* ── Sidebar compacte ── */
+  .sidebar {
+    width: var(--sidebar-w-sm); /* 70px */
+    overflow: hidden;
+  }
+
+  /* Masquer les libellés de navigation */
+  .sidebar .link-label {
+    display: none;
+  }
+
+  /* Centrer les icônes et réduire le padding */
+  .sidebar .nav-link {
+    justify-content: center;
+    padding: 12px;
+    gap: 0;
+  }
+
+  /* Réduire le logo */
+  .sidebar .logo-area {
+    justify-content: center;
+    padding: 1rem 0;
+  }
+  .sidebar .logo-area .logo-text,
+  .sidebar .logo-area .logo-subtitle {
+    display: none;
+  }
+  .sidebar .logo-area .logo-icon {
+    margin: 0 auto;
+  }
+
+  /* Icônes sidebar légèrement plus grandes pour compenser */
+  .sidebar .nav-link i {
+    font-size: 1.2rem;
+    min-width: unset;
+  }
+
+  /* Décaler le contenu principal */
+  .main-wrapper {
+    margin-left: var(--sidebar-w-sm); /* 70px */
+  }
+
+  /* ── KPI Dashboard : 2 colonnes ── */
+  .kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ── Grille enseignants : 2 colonnes fixes ── */
+  .enseignants-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    padding: 0 1rem;
+  }
+
+  /* ── Conteneur global ── */
+  .content-area {
+    padding: 1rem;
+  }
+
+  /* ── Charts / Cards ── */
+  .dashboard-charts {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Filtres Planning : 2 colonnes ── */
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ── Formulaire Create Séance : champs pleine largeur ── */
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 0.9rem;
+  }
+
+  /* ── Layout 2-col Séance/Create ── */
+  .create-layout {
+    grid-template-columns: 1fr;
+  }
+  .info-col {
+    order: -1;
+  }
+
+  /* ── Tableau mentions ── */
+  .table-emit thead th:last-child,
+  .table-emit tbody td:last-child {
+    /* Colonne actions reste visible */
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   2. MOBILE — ≤ 576px
+   Sidebar hors-écran (drawer), tout en 1 colonne, touch targets 44px
+═══════════════════════════════════════════════════════════════════ */
+@media (max-width: 576px) {
+
+  /* ── Sidebar : drawer fixe, masquée par défaut ── */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100dvh;
+    width: var(--sidebar-w); /* 260px — s'affiche complète quand ouverte */
+    transform: translateX(-260px);
+    transition: transform 0.3s ease;
+    z-index: 1050;
+    /* Rétablit la largeur complète pour le drawer mobile */
+    overflow: visible;
+  }
+
+  /* Rétablir labels et padding quand ouvert en drawer */
+  .sidebar .link-label {
+    display: inline; /* sera visible dans le drawer */
+  }
+  .sidebar .nav-link {
+    justify-content: flex-start;
+    padding: 12px 20px;
+    gap: 0.75rem;
+  }
+  .sidebar .nav-link i {
+    font-size: 1.1rem;
+    min-width: 20px;
+  }
+  .sidebar .logo-area {
+    justify-content: flex-start;
+    padding: 1.25rem 1.25rem 1rem;
+  }
+  .sidebar .logo-area .logo-text,
+  .sidebar .logo-area .logo-subtitle {
+    display: block;
+  }
+
+  /* Sidebar ouverte (classe ajoutée sur <body> par site.js) */
+  body.sidebar-open .sidebar {
+    transform: translateX(0);
+  }
+
+  /* ── Overlay fond sombre ── */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1040;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    cursor: pointer;
+  }
+
+  body.sidebar-open .sidebar-overlay {
+    display: block;
+    /* Animation fade-in */
+    animation: overlay-fadein 0.25s ease forwards;
+  }
+
+  @keyframes overlay-fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── Contenu principal : marge zéro ── */
+  .main-wrapper {
+    margin-left: 0;
+  }
+
+  /* ── Topbar : bouton hamburger visible ── */
+  .topbar {
+    padding: 0 0.75rem;
+  }
+  .topbar-toggle {
+    display: flex !important; /* montré uniquement en mobile */
+  }
+
+  /* ── Contenu : padding réduit ── */
+  .content-area {
+    padding: 0.75rem;
+  }
+
+  /* ── KPI Dashboard : 1 colonne ── */
+  .kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* ── Grille enseignants : 1 colonne ── */
+  .enseignants-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* ── Touch targets minimum 44px (WCAG 2.5.5) ── */
+  .btn,
+  .nav-link,
+  .btn-emit-primary,
+  .btn-emit-danger,
+  .btn-emit-ghost {
+    min-height: 44px;
+    padding: 12px 16px;
+  }
+
+  /* Icônes seules (boutons icon-only) */
+  .btn-icon-only {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Filtres Planning : 1 colonne ── */
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* ── Formulaire Create Séance ── */
+  .form-row-2 {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .form-card {
+    padding: 1rem;
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 0.6rem;
+  }
+  .form-actions .btn-emit-primary,
+  .form-actions .btn-emit-ghost {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Topbar titre tronqué ── */
+  .topbar-title {
+    font-size: 1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 160px;
+  }
+
+  /* ── Tables : scroll horizontal ── */
+  .table-responsive-emit {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: var(--radius);
+  }
+
+  /* ── Cards : padding réduit ── */
+  .card-emit {
+    border-radius: 10px;
+  }
+
+  /* ── Barre recherche pleine largeur ── */
+  .search-bar-wrap {
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+  .search-bar-wrap .emit-search-input {
+    width: 100%;
+  }
+
+  /* ── En-têtes de page ── */
+  .page-header-emit {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+  .page-header-actions {
+    width: 100%;
+  }
+  .page-header-actions .btn-emit-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Carte enseignant : layout condensé ── */
+  .enseignant-card-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .enseignant-card-actions .btn-emit-primary {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ── Planning : calendrier full-width ── */
+  .calendar-card {
+    padding: 0.5rem;
+  }
+  /* La vue listWeek est gérée en JS (timetable.js) */
+
+  /* ── FullCalendar toolbar compacté ── */
+  .fc-toolbar {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .fc-toolbar-title {
+    font-size: 0.95rem !important;
+  }
+  .fc-button {
+    font-size: 0.75rem !important;
+    padding: 0.3rem 0.5rem !important;
+  }
+
+  /* ── Modal plein écran sur mobile ── */
+  .modal-dialog {
+    margin: 0.5rem;
+    max-width: calc(100vw - 1rem);
+  }
+
+  /* ── Toast : pleine largeur ── */
+  #toast-container {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+  }
+  .emit-toast {
+    min-width: unset;
+    width: 100%;
+    max-width: unset;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   3. UTILITAIRES RESPONSIVES TRANSVERSAUX
+   (actifs à tous les breakpoints, non dépendants d'une taille)
+═══════════════════════════════════════════════════════════════════ */
+
+/* Bouton hamburger — caché par défaut, montré par JS/CSS mobile */
+.topbar-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.topbar-toggle:hover {
+  background: rgba(115, 185, 230, 0.1);
+  color: var(--accent);
+}
+
+/* Skeleton loader (réutilisable) */
+.skeleton-loader {
+  background: linear-gradient(
+    90deg,
+    rgba(115, 185, 230, 0.08) 25%,
+    rgba(115, 185, 230, 0.16) 50%,
+    rgba(115, 185, 230, 0.08) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Carte skeleton enseignant */
+.skeleton-enseignant-card {
+  background: var(--bg-surface);
+  border: 1px solid rgba(115, 185, 230, 0.1);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+.skeleton-enseignant-card .sk-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  margin: 0 auto 0.25rem;
+}
+.skeleton-enseignant-card .sk-line {
+  height: 12px;
+  border-radius: 6px;
+}
+.skeleton-enseignant-card .sk-line--short { width: 60%; margin: 0 auto; }
+.skeleton-enseignant-card .sk-line--med   { width: 80%; margin: 0 auto; }
+.skeleton-enseignant-card .sk-line--full  { width: 100%; }
+.skeleton-enseignant-card .sk-badges {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.skeleton-enseignant-card .sk-badge {
+  height: 22px;
+  width: 70px;
+  border-radius: 20px;
+}
