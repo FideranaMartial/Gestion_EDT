@@ -60,27 +60,27 @@ namespace Gestion_EDT.Controllers
         // ── POST /Mentions/Create ────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Mention mention)
+        public async Task<IActionResult> Create(Mention mentions)
         {
-            if (!ModelState.IsValid) return View(mention);
+            if (!ModelState.IsValid) return View(mentions);
 
             // RG02 — unicité du code_mention
             bool existe = await _db.Mentions
-                .AnyAsync(m => m.code_mention == mention.code_mention);
+                .AnyAsync(m => m.code_mention == mentions.code_mention);
             if (existe)
             {
-                ModelState.AddModelError(nameof(mention.code_mention),
+                ModelState.AddModelError(nameof(mentions.code_mention),
                     "Ce code mention existe déjà.");
-                return View(mention);
+                return View(mentions);
             }
 
-            mention.code_mention = mention.code_mention.Trim().ToUpperInvariant();
-            _db.Mentions.Add(mention);
+            mentions.code_mention = mentions.code_mention.Trim().ToUpperInvariant();
+            _db.Mentions.Add(mentions);
             await _db.SaveChangesAsync();   // génère mention.Id
 
             // RG03 — Créer les 2 cycles (Licence + Master)
-            var cycleL = new Cycle { nom_cycle = $"Licence {mention.nom_mention}", niveau = "L", MentionId = mention.Id };
-            var cycleM = new Cycle { nom_cycle = $"Master {mention.nom_mention}",  niveau = "M", MentionId = mention.Id };
+            var cycleL = new Cycle { nom_cycle = $"Licence {mentions.nom_mention}", niveau = "L", MentionId = mentions.Id };
+            var cycleM = new Cycle { nom_cycle = $"Master {mentions.nom_mention}",  niveau = "M", MentionId = mentions.Id };
             _db.Cycles.AddRange(cycleL, cycleM);
             await _db.SaveChangesAsync();
 
@@ -95,7 +95,7 @@ namespace Gestion_EDT.Controllers
             await _db.SaveChangesAsync();
 
             TempData["Success"] =
-                $"Mention \"{mention.nom_mention}\" créée avec les cycles et niveaux L1→M2.";
+                $"Mention \"{mentions.nom_mention}\" créée avec les cycles et niveaux L1→M2.";
             return RedirectToAction(nameof(Index));
         }
 
