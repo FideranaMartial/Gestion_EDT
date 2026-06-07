@@ -1,18 +1,24 @@
-﻿using Gestion_EDT.Models;
 using Microsoft.EntityFrameworkCore;
+using Gestion_EDT.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ajoute MVC
+// ── MVC ─────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
-// ⬇️ AJOUTE CECI : connexion à la base de données
-builder.Services.AddDbContext < ApplicationDbContext > (options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// ── SQL Server via EF Core ─────────────────────────────────────
+var connectionString = builder.Configuration
+    .GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException(
+        "Chaîne de connexion 'DefaultConnection' introuvable dans appsettings.json.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString)  // Changé : UseMySql → UseSqlServer
+);
 
 var app = builder.Build();
 
-// Configure le pipeline HTTP
+// ── Middleware ───────────────────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -24,8 +30,16 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
+// ── Routes ───────────────────────────────────────────────────────
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ── Migration automatique au démarrage ───────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    db.Database.Migrate();
+}
 
 app.Run();
