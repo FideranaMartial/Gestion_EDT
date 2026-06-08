@@ -6,14 +6,13 @@ var builder = WebApplication.CreateBuilder(args);
 // ── MVC ─────────────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
-// ── SQL Server via EF Core ─────────────────────────────────────
+
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Chaîne de connexion 'DefaultConnection' introuvable dans appsettings.json.");
+    ?? throw new InvalidOperationException("Chaîne de connexion introuvable.");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString)  // Changé : UseMySql → UseSqlServer
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
 );
 
 var app = builder.Build();
