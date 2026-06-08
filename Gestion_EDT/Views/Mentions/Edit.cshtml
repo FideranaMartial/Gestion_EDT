@@ -1,0 +1,863 @@
+@*  *@
+@{
+    ViewData["Title"] = "Modifier la Mention";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@* Injection Razor de l'id depuis le modèle ou query string *@
+@{
+    var mentionId = ViewData["MentionId"]?.ToString() ?? "0";
+}
+
+@section Styles {
+<style>
+/* ─── LAYOUT ASYMÉTRIQUE (identique à Create) ─── */
+.edit-root {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 24px;
+    align-items: start;
+    max-width: 980px;
+}
+
+/* ─── FORM CARD ─── */
+.form-card {
+    background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
+    border: 1px solid rgba(115,185,230,0.12);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.form-card-header {
+    padding: 22px 28px 18px;
+    border-bottom: 1px solid rgba(115,185,230,0.1);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.form-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(251,191,36,0.18), rgba(251,191,36,0.07));
+    border: 1px solid rgba(251,191,36,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: var(--warning);
+    flex-shrink: 0;
+}
+
+.form-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.form-card-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.form-card-body {
+    padding: 28px;
+}
+
+/* ─── SKELETON FORM ─── */
+.form-skeleton {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 20px;
+}
+
+.form-skel-full { grid-column: 1 / -1; }
+
+.form-skel-block {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ─── GRILLE FORMULAIRE ASYMÉTRIQUE ─── */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+}
+
+.field-nom    { grid-column: 1 / -1; }
+.field-niveau { grid-column: 1; }
+.field-code   { grid-column: 2; }
+
+.form-footer {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(115,185,230,0.08);
+    margin-top: 4px;
+    flex-wrap: wrap;
+}
+
+/* ─── PREVIEW CARD ─── */
+.preview-card {
+    background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
+    border: 1px solid rgba(115,185,230,0.12);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    position: sticky;
+    top: calc(var(--topbar-h) + 20px);
+}
+
+.preview-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 18px;
+}
+
+.preview-mention-card {
+    background: rgba(23,37,84,0.5);
+    border: 1px solid rgba(115,185,230,0.1);
+    border-radius: 10px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    transition: var(--transition);
+}
+
+.preview-avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: var(--transition);
+}
+
+.preview-avatar.licence  { background: rgba(115,185,230,0.15); color: var(--accent); }
+.preview-avatar.master   { background: rgba(167,139,250,0.15); color: #A78BFA; }
+.preview-avatar.doctorat { background: rgba(251,191,36,0.15);  color: var(--warning); }
+.preview-avatar.default  { background: rgba(148,163,184,0.1);  color: var(--text-muted); }
+
+.preview-info-nom {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    word-break: break-word;
+}
+
+.preview-info-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* ─── CHANGES INDICATOR ─── */
+.changes-indicator {
+    display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--warning);
+    background: rgba(251,191,36,0.08);
+    border: 1px solid rgba(251,191,36,0.18);
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin-top: 14px;
+}
+
+.changes-indicator.visible {
+    display: flex;
+}
+
+/* ─── ORIGINAL VALUES ─── */
+.original-value {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.original-value .old-val {
+    text-decoration: line-through;
+    color: rgba(148,163,184,0.6);
+}
+
+/* ─── CHAR COUNTER ─── */
+.char-counter {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 4px;
+    transition: color 0.2s ease;
+}
+.char-counter.warn  { color: var(--warning); }
+.char-counter.limit { color: var(--danger); }
+
+/* ─── RESPONSIVE ─── */
+@@media (max-width: 900px) {
+    .edit-root {
+        grid-template-columns: 1fr;
+    }
+    .preview-card {
+        position: static;
+        order: -1;
+    }
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    .field-nom, .field-niveau, .field-code { grid-column: 1; }
+}
+</style>
+}
+
+@*
+    DATA ATTRIBUTE Razor
+   L'id de la mention est injecté ici par le contrôleur.
+   Le JS lit window.__mentionId depuis cet attribut.
+*@
+<div id="edit-page-root"
+     class="animate-fadein"
+     data-mention-id="@mentionId">
+
+    @* ── Breadcrumb ── *@
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
+        <a href="/Mentions" style="color:var(--text-muted);text-decoration:none;transition:var(--transition);"
+           onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
+            <i class="bi bi-mortarboard-fill" style="margin-right:4px;"></i>Mentions
+        </a>
+        <i class="bi bi-chevron-right" style="font-size:11px;"></i>
+        <span id="breadcrumb-nom" style="color:var(--text-primary);font-weight:500;">Modifier</span>
+    </div>
+
+    <div class="edit-root">
+
+        @*COL 1 — FORMULAIRE *@
+        <div class="form-card">
+
+            <div class="form-card-header">
+                <div class="form-card-icon" aria-hidden="true">
+                    <i class="bi bi-pencil-square"></i>
+                </div>
+                <div>
+                    <div class="form-card-title">Modifier la mention</div>
+                    <div class="form-card-sub" id="form-card-sub">Chargement en cours…</div>
+                </div>
+            </div>
+
+            <div class="form-card-body">
+
+                @* ── Skeleton pendant le chargement ── *@
+                <div id="form-skeleton" aria-hidden="true">
+                    <div class="form-skeleton">
+                        <div class="form-skel-full form-skel-block">
+                            <div class="skeleton" style="height:11px;width:100px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:44px;border-radius:12px;"></div>
+                        </div>
+                        <div class="form-skel-block">
+                            <div class="skeleton" style="height:11px;width:90px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:44px;border-radius:12px;"></div>
+                        </div>
+                        <div class="form-skel-block">
+                            <div class="skeleton" style="height:11px;width:70px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:44px;border-radius:12px;"></div>
+                        </div>
+                        <div class="form-skel-full" style="display:flex;gap:12px;padding-top:8px;border-top:1px solid rgba(115,185,230,0.08);margin-top:4px;">
+                            <div class="skeleton" style="height:42px;width:140px;border-radius:12px;"></div>
+                            <div class="skeleton" style="height:42px;width:100px;border-radius:12px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── Formulaire réel (caché jusqu'au chargement) ── *@
+                <form id="edit-mention-form"
+                      data-emit-validate
+                      novalidate
+                      autocomplete="off"
+                      aria-label="Formulaire de modification de mention"
+                      style="display:none;">
+
+                    <div class="form-grid">
+
+                        @* ─── NOM ─── *@
+                        <div class="form-group-emit field-nom">
+                            <label class="form-label-emit" for="nom">
+                                <i class="bi bi-fonts" aria-hidden="true" style="margin-right:5px;"></i>
+                                Nom de la mention
+                                <span style="color:var(--danger);margin-left:2px;" aria-hidden="true">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="nom"
+                                name="nom"
+                                class="form-control-emit"
+                                placeholder="ex. Informatique, Mathématiques…"
+                                data-validate="required alpha min-length"
+                                data-min-length="2"
+                                maxlength="100"
+                                required
+                                aria-required="true"
+                                aria-describedby="nom-feedback nom-counter" />
+                            <div style="display:flex;justify-content:space-between;align-items:center;min-height:18px;">
+                                <div class="form-feedback-emit" id="nom-feedback" data-feedback-for="#nom" role="alert" aria-live="polite"></div>
+                                <div class="char-counter" id="nom-counter" aria-hidden="true">0 / 100</div>
+                            </div>
+                            <div class="original-value" id="nom-original" style="display:none;">
+                                <i class="bi bi-clock-history" style="font-size:10px;"></i>
+                                Valeur initiale : <span class="old-val" id="nom-old"></span>
+                            </div>
+                        </div>
+
+                        @* ─── NIVEAU ─── *@
+                        <div class="form-group-emit field-niveau">
+                            <label class="form-label-emit" for="niveau">
+                                <i class="bi bi-bar-chart-steps" aria-hidden="true" style="margin-right:5px;"></i>
+                                Niveau d'études
+                                <span style="color:var(--danger);margin-left:2px;" aria-hidden="true">*</span>
+                            </label>
+                            <select
+                                id="niveau"
+                                name="niveau"
+                                class="form-control-emit"
+                                data-validate="required"
+                                required
+                                aria-required="true"
+                                aria-describedby="niveau-feedback">
+                                <option value="" disabled>— Choisir un niveau —</option>
+                                <option value="Licence">Licence</option>
+                                <option value="Master">Master</option>
+                                <option value="Doctorat">Doctorat</option>
+                            </select>
+                            <div class="form-feedback-emit" id="niveau-feedback" data-feedback-for="#niveau" role="alert" aria-live="polite"></div>
+                            <div class="original-value" id="niveau-original" style="display:none;">
+                                <i class="bi bi-clock-history" style="font-size:10px;"></i>
+                                Valeur initiale : <span class="old-val" id="niveau-old"></span>
+                            </div>
+                        </div>
+
+                        @* ─── CODE ─── *@
+                        <div class="form-group-emit field-code">
+                            <label class="form-label-emit" for="code">
+                                <i class="bi bi-hash" aria-hidden="true" style="margin-right:5px;"></i>
+                                Code court
+                                <span style="color:var(--text-muted);font-size:11px;margin-left:4px;">(optionnel)</span>
+                            </label>
+                            <input
+                                type="text"
+                                id="code"
+                                name="code"
+                                class="form-control-emit"
+                                placeholder="ex. INFO…"
+                                data-validate="code"
+                                maxlength="6"
+                                style="text-transform:uppercase;"
+                                aria-describedby="code-feedback" />
+                            <div class="form-feedback-emit" id="code-feedback" data-feedback-for="#code" role="alert" aria-live="polite"></div>
+                        </div>
+
+                        @* ─── FOOTER ─── *@
+                        <div class="form-footer">
+                            <button
+                                type="submit"
+                                id="btn-submit"
+                                class="btn-primary-emit"
+                                aria-label="Sauvegarder les modifications">
+                                <i class="bi bi-floppy-fill" aria-hidden="true"></i>
+                                Sauvegarder
+                            </button>
+                            <a href="/Mentions"
+                               class="btn-secondary-emit"
+                               aria-label="Annuler et retourner à la liste">
+                                <i class="bi bi-x-lg" aria-hidden="true"></i>
+                                Annuler
+                            </a>
+                            <button type="button"
+                                    id="btn-reset"
+                                    class="btn-secondary-emit"
+                                    aria-label="Réinitialiser les champs aux valeurs d'origine"
+                                    title="Rétablir les valeurs originales"
+                                    style="display:none;">
+                                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                Réinitialiser
+                            </button>
+                            <div id="submit-status" style="margin-left:auto;font-size:12px;color:var(--text-muted);" aria-live="polite"></div>
+                        </div>
+
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+        @* COL 2 — APERÇU + META *@
+        <div>
+
+            @* Preview dynamique *@
+            <div class="preview-card">
+                <div class="preview-title">
+                    <i class="bi bi-eye" style="margin-right:6px;color:var(--accent);"></i>
+                    Aperçu en direct
+                </div>
+
+                @* Skeleton preview *@
+                <div id="preview-skeleton">
+                    <div class="preview-mention-card" style="gap:14px;">
+                        <div class="skeleton" style="width:46px;height:46px;border-radius:12px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton" style="height:13px;width:70%;margin-bottom:8px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:10px;width:45%;border-radius:3px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="preview-real" style="display:none;">
+                    <div class="preview-mention-card" id="preview-card">
+                        <div class="preview-avatar default" id="preview-avatar" aria-hidden="true">
+                            <i class="bi bi-mortarboard"></i>
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div class="preview-info-nom" id="preview-nom">—</div>
+                            <div id="preview-niveau-wrap" style="display:none;">
+                                <span class="preview-info-badge badge-niveau" id="preview-badge"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="changes-indicator" id="changes-indicator">
+                        <i class="bi bi-pencil-square" style="font-size:13px;"></i>
+                        Modifications non sauvegardées
+                    </div>
+                </div>
+
+                @* Métadonnées de la mention *@
+                <div id="mention-meta" style="margin-top:16px;display:none;">
+                    <div style="background:rgba(23,37,84,0.4);border:1px solid rgba(115,185,230,0.08);border-radius:10px;padding:14px 16px;">
+                        <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:10px;">
+                            Informations
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+                                <span style="color:var(--text-muted);">Identifiant</span>
+                                <span id="meta-id" style="color:var(--accent);font-weight:600;font-family:monospace;">#—</span>
+                            </div>
+                            <div style="height:1px;background:rgba(115,185,230,0.08);"></div>
+                            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+                                <span style="color:var(--text-muted);">Statut</span>
+                                <span class="badge-emit success" style="font-size:10px;">
+                                    <i class="bi bi-check-circle-fill" style="margin-right:4px;"></i>Actif
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    /* ── Lecture de l'id depuis le data-attribute Razor ── */
+    const pageRoot  = document.getElementById('edit-page-root');
+    const mentionId = parseInt(pageRoot?.dataset?.mentionId || '0', 10);
+
+    /* Fallback : lecture depuis l'URL query string */
+    function getIdFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const idStr  = params.get('id');
+        return idStr ? parseInt(idStr, 10) : 0;
+    }
+
+    const resolvedId = mentionId > 0 ? mentionId : getIdFromUrl();
+
+    /* ── Helpers ── */
+    function esc(s) { return window._emitEscapeHtml ? window._emitEscapeHtml(String(s ?? '')) : String(s ?? ''); }
+
+    function getNiveauClass(niveau) {
+        if (!niveau) return 'default';
+        const n = niveau.toLowerCase();
+        if (n === 'master')   return 'master';
+        if (n === 'doctorat') return 'doctorat';
+        if (n === 'licence')  return 'licence';
+        return 'default';
+    }
+
+    function getNiveauIcon(niveau) {
+        if (!niveau) return 'bi-mortarboard';
+        const n = niveau.toLowerCase();
+        if (n === 'master')   return 'bi-bookmark-star-fill';
+        if (n === 'doctorat') return 'bi-trophy-fill';
+        return 'bi-bookmark-fill';
+    }
+
+    function getInitials(nom) {
+        if (!nom || !nom.trim()) return null;
+        const parts = nom.trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    }
+
+    /* ── État ── */
+    let _originalData = { nom: '', niveau: '', code: '' };
+    let _hasChanges   = false;
+
+    /* ── Détection de modifications ── */
+    function checkChanges() {
+        const nom    = document.getElementById('nom')?.value || '';
+        const niveau = document.getElementById('niveau')?.value || '';
+        const code   = (document.getElementById('code')?.value || '').toUpperCase();
+
+        const changed = nom.trim() !== _originalData.nom
+            || niveau !== _originalData.niveau
+            || code !== (_originalData.code || '').toUpperCase();
+
+        _hasChanges = changed;
+
+        /* Indicateur de changement */
+        const indicator = document.getElementById('changes-indicator');
+        if (indicator) indicator.classList.toggle('visible', changed);
+
+        /* Bouton réinitialiser */
+        const resetBtn = document.getElementById('btn-reset');
+        if (resetBtn) resetBtn.style.display = changed ? 'inline-flex' : 'none';
+
+        /* Valeurs originales inline */
+        updateOriginalHints(nom, niveau);
+    }
+
+    function updateOriginalHints(nom, niveau) {
+        const nomOrig   = document.getElementById('nom-original');
+        const nomOld    = document.getElementById('nom-old');
+        const niveauOrig = document.getElementById('niveau-original');
+        const niveauOld  = document.getElementById('niveau-old');
+
+        if (nomOrig && nomOld) {
+            const nomChanged = nom.trim() !== _originalData.nom;
+            nomOrig.style.display = nomChanged ? 'flex' : 'none';
+            if (nomOld) nomOld.textContent = _originalData.nom;
+        }
+
+        if (niveauOrig && niveauOld) {
+            const niveauChanged = niveau !== _originalData.niveau;
+            niveauOrig.style.display = niveauChanged ? 'flex' : 'none';
+            if (niveauOld) niveauOld.textContent = _originalData.niveau;
+        }
+    }
+
+    /* ── Aperçu dynamique ── */
+    function updatePreview() {
+        const nom    = document.getElementById('nom')?.value || '';
+        const niveau = document.getElementById('niveau')?.value || '';
+
+        const avatarEl   = document.getElementById('preview-avatar');
+        const nomEl      = document.getElementById('preview-nom');
+        const badgeWrap  = document.getElementById('preview-niveau-wrap');
+        const badgeEl    = document.getElementById('preview-badge');
+
+        const cls      = getNiveauClass(niveau);
+        const icon     = getNiveauIcon(niveau);
+        const initials = getInitials(nom);
+
+        if (avatarEl) {
+            avatarEl.className = `preview-avatar ${cls}`;
+            avatarEl.innerHTML = initials
+                ? esc(initials)
+                : `<i class="bi ${icon}" aria-hidden="true"></i>`;
+        }
+
+        if (nomEl) {
+            nomEl.textContent = nom.trim() || '—';
+        }
+
+        if (badgeWrap && badgeEl && niveau) {
+            badgeWrap.style.display = 'block';
+            badgeEl.className = `preview-info-badge badge-niveau ${cls}`;
+            badgeEl.innerHTML = `<i class="bi ${icon}" aria-hidden="true"></i>${esc(niveau)}`;
+        } else if (badgeWrap) {
+            badgeWrap.style.display = 'none';
+        }
+
+        checkChanges();
+    }
+
+    /* ── Remplissage du formulaire ── */
+    function fillForm(mention) {
+        const nomInput    = document.getElementById('nom');
+        const niveauSel   = document.getElementById('niveau');
+        const codeInput   = document.getElementById('code');
+
+        if (nomInput)  nomInput.value  = mention.nom || '';
+        if (niveauSel) niveauSel.value = mention.niveau || '';
+        if (codeInput) codeInput.value = (mention.code || '').toUpperCase();
+
+        /* Stocker les valeurs originales */
+        _originalData = {
+            nom:    mention.nom    || '',
+            niveau: mention.niveau || '',
+            code:   (mention.code  || '').toUpperCase(),
+        };
+
+        /* Métadonnées */
+        const metaId = document.getElementById('meta-id');
+        if (metaId) metaId.textContent = `#${mention.id}`;
+
+        const subEl = document.getElementById('form-card-sub');
+        if (subEl) subEl.textContent = `Modification de "${mention.nom}"`;
+
+        const breadEl = document.getElementById('breadcrumb-nom');
+        if (breadEl) breadEl.textContent = mention.nom;
+
+        /* Compteur chars */
+        updateCharCounter(nomInput);
+
+        /* Aperçu */
+        updatePreview();
+    }
+
+    /* ── Compteur de caractères ── */
+    function updateCharCounter(input) {
+        const counter = document.getElementById('nom-counter');
+        if (!input || !counter) return;
+        const MAX = 100;
+        const len = input.value.length;
+        counter.textContent = `${len} / ${MAX}`;
+        counter.className = 'char-counter';
+        if (len > MAX * 0.85) counter.classList.add('warn');
+        if (len >= MAX)       counter.classList.add('limit');
+    }
+
+    function initCharCounter() {
+        const input = document.getElementById('nom');
+        if (!input) return;
+        input.addEventListener('input', () => updateCharCounter(input));
+    }
+
+    /* ── Code en majuscules ── */
+    function initCodeField() {
+        const codeInput = document.getElementById('code');
+        if (!codeInput) return;
+        codeInput.addEventListener('input', () => {
+            const pos = codeInput.selectionStart;
+            codeInput.value = codeInput.value.toUpperCase();
+            codeInput.setSelectionRange(pos, pos);
+        });
+    }
+
+    /* ── Listeners aperçu ── */
+    function initPreviewListeners() {
+        ['nom', 'niveau', 'code'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input',  updatePreview);
+                el.addEventListener('change', updatePreview);
+            }
+        });
+    }
+
+    /* ── Bouton réinitialiser ── */
+    function initResetButton() {
+        const btn = document.getElementById('btn-reset');
+        if (!btn) return;
+        btn.addEventListener('click', () => {
+            const nomInput  = document.getElementById('nom');
+            const niveauSel = document.getElementById('niveau');
+            const codeInput = document.getElementById('code');
+
+            if (nomInput)  nomInput.value  = _originalData.nom;
+            if (niveauSel) niveauSel.value = _originalData.niveau;
+            if (codeInput) codeInput.value = _originalData.code;
+
+            window.ValidationEngine.resetForm(document.getElementById('edit-mention-form'));
+            updateCharCounter(nomInput);
+            updatePreview();
+
+            window.showToast('Champs réinitialisés aux valeurs d\'origine.', 'info', 'Réinitialisation');
+        });
+    }
+
+    /* ── Soumission formulaire ── */
+    function initForm() {
+        const form     = document.getElementById('edit-mention-form');
+        const btnSub   = document.getElementById('btn-submit');
+        const statusEl = document.getElementById('submit-status');
+
+        if (!form || !btnSub) return;
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            /* Validation complète */
+            const validation = window.ValidationEngine.validateForm(form);
+            if (!validation.valid) {
+                window.showToast(
+                    `Veuillez corriger ${validation.errors.length} erreur(s) avant de sauvegarder.`,
+                    'warning',
+                    'Formulaire invalide'
+                );
+                return;
+            }
+
+            /* Vérification si des changements existent */
+            if (!_hasChanges) {
+                window.showToast('Aucune modification détectée.', 'info', 'Sans changement');
+                return;
+            }
+
+            const nom    = document.getElementById('nom').value.trim();
+            const niveau = document.getElementById('niveau').value.trim();
+            const code   = (document.getElementById('code')?.value || '').trim().toUpperCase() || undefined;
+
+            if (statusEl) statusEl.textContent = '';
+
+            try {
+                const result = await window.fetchWithSpinner(
+                    btnSub,
+                    window.MockAPI.updateMention(resolvedId, { nom, niveau, code })
+                );
+
+                window.showToast(
+                    `La mention "${result.nom}" a été mise à jour avec succès.`,
+                    'success',
+                    'Modification réussie'
+                );
+
+                /* Mise à jour des valeurs originales (plus de "changes") */
+                _originalData = { nom: result.nom, niveau: result.niveau, code: result.code || '' };
+                _hasChanges   = false;
+                checkChanges();
+
+                /* Mise à jour du breadcrumb et sous-titre */
+                const breadEl = document.getElementById('breadcrumb-nom');
+                if (breadEl) breadEl.textContent = result.nom;
+                const subEl = document.getElementById('form-card-sub');
+                if (subEl) subEl.textContent = `Modification de "${result.nom}"`;
+
+                /* Redirect après 800ms */
+                if (statusEl) statusEl.innerHTML = `<i class="bi bi-hourglass-split" style="margin-right:4px;"></i>Redirection…`;
+                setTimeout(() => {
+                    window.location.href = '/Mention?updated=1';
+                }, 800);
+
+            } catch (err) {
+                window.handleApiError(err, 'updateMention');
+                if (statusEl) statusEl.textContent = '';
+            }
+        });
+    }
+
+    /* ── Chargement de la mention à modifier ── */
+    async function loadMention() {
+        if (!resolvedId || resolvedId <= 0) {
+            /* Aucun id valide */
+            const skel = document.getElementById('form-skeleton');
+            if (skel) {
+                skel.innerHTML = `
+                <div style="padding:32px;text-align:center;color:var(--danger);">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p style="font-size:14px;">Identifiant de mention invalide ou manquant.</p>
+                    <a href="/Mention" class="btn-secondary-emit" style="margin-top:16px;display:inline-flex;">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>`;
+            }
+            return;
+        }
+
+        try {
+            /* On récupère toutes les mentions et on filtre par id */
+            const allMentions = await window.MockAPI.getMentions();
+            const mention     = allMentions.find(m => m.id === resolvedId);
+
+            if (!mention) {
+                throw { code: 404, message: `La mention #${resolvedId} est introuvable.` };
+            }
+
+            /* Cache skeleton, affiche formulaire */
+            const skel = document.getElementById('form-skeleton');
+            const form = document.getElementById('edit-mention-form');
+            const prevSkel = document.getElementById('preview-skeleton');
+            const prevReal = document.getElementById('preview-real');
+            const meta     = document.getElementById('mention-meta');
+
+            if (skel)    skel.style.display    = 'none';
+            if (form)    form.style.display    = 'grid';
+            if (prevSkel) prevSkel.style.display = 'none';
+            if (prevReal) prevReal.style.display = 'block';
+            if (meta)    meta.style.display    = 'block';
+
+            fillForm(mention);
+
+        } catch (err) {
+            window.handleApiError(err, 'loadMention');
+
+            const skel = document.getElementById('form-skeleton');
+            if (skel) {
+                skel.innerHTML = `
+                <div style="padding:32px;text-align:center;color:var(--danger);">
+                    <i class="bi bi-wifi-off" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p style="font-size:14px;">Impossible de charger la mention. Rechargez la page.</p>
+                    <a href="/Mentions" class="btn-secondary-emit" style="margin-top:16px;display:inline-flex;">
+                        <i class="bi bi-arrow-left"></i> Retour à la liste
+                    </a>
+                </div>`;
+            }
+        }
+    }
+
+    /* ── Avertissement avant de quitter si changements non sauvegardés ── */
+    function initBeforeUnload() {
+        window.addEventListener('beforeunload', (e) => {
+            if (_hasChanges) {
+                e.preventDefault();
+                e.returnValue = 'Des modifications non sauvegardées seront perdues.';
+            }
+        });
+
+        /* Bypass pour les boutons Annuler (navigation intentionnelle) */
+        document.querySelectorAll('a[href="/Mention"]').forEach(link => {
+            link.addEventListener('click', () => {
+                _hasChanges = false;
+            });
+        });
+    }
+
+    /* ── Init ── */
+    document.addEventListener('DOMContentLoaded', () => {
+        loadMention();
+        initCharCounter();
+        initCodeField();
+        initPreviewListeners();
+        initResetButton();
+        initForm();
+        initBeforeUnload();
+    });
+
+})();
+</script>
+}

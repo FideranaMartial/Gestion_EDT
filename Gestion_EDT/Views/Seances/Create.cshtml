@@ -1,0 +1,663 @@
+@{
+    ViewData["Title"] = "Nouvelle séance";
+    ViewData["ActivePage"] = "Seance";
+}
+
+<div class="seance-create-page">
+
+    <!-- ══════════════════════════════════════════════
+         En-tête de page
+    ═══════════════════════════════════════════════ -->
+    <div class="page-header-emit mb-4">
+        <div class="page-header-left">
+            <a href="/Planning" class="btn-back" title="Retour au planning">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div class="page-icon-wrap accent-calendar">
+                <i class="bi bi-calendar-plus-fill"></i>
+            </div>
+            <div>
+                <h1 class="page-title-emit">Nouvelle séance</h1>
+                <p class="page-subtitle-emit">Planifiez une séance de cours dans l'emploi du temps</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="create-layout">
+
+        <!-- ══════════════════════════════════════════
+             Formulaire principal
+        ═══════════════════════════════════════════ -->
+        <div class="form-col">
+            <div class="card-emit form-card">
+
+                <!-- Alerte conflit (masquée par défaut) -->
+                <div id="conflitAlert" class="conflit-alert" style="display:none;" role="alert" aria-live="assertive">
+                    <div class="conflit-alert-icon">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                    <div class="conflit-alert-body">
+                        <strong id="conflitTitle">Conflit détecté</strong>
+                        <p id="conflitMessage" class="mb-0"></p>
+                    </div>
+                </div>
+
+                <!-- Indicateur de vérification conflit -->
+                <div id="checkingIndicator" class="checking-indicator" style="display:none;">
+                    <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    <span>Vérification des conflits en cours…</span>
+                </div>
+
+                <form id="seanceForm" novalidate>
+
+                    <!-- ── Ligne 1 : Date + Libellé ── -->
+                    <div class="form-row-2">
+
+                        <div class="field-group">
+                            <label class="field-label" for="date">
+                                <i class="bi bi-calendar3 me-1"></i>Date <span class="required-star">*</span>
+                            </label>
+                            <input type="date"
+                                   id="date"
+                                   name="date"
+                                   class="emit-input"
+                                   required
+                                   autocomplete="off" />
+                            <div class="field-error" id="error-date"></div>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="libelle">
+                                <i class="bi bi-journal-text me-1"></i>Libellé de la séance <span class="required-star">*</span>
+                            </label>
+                            <input type="text"
+                                   id="libelle"
+                                   name="libelle"
+                                   class="emit-input"
+                                   placeholder="ex. Algorithmique — Cours magistral"
+                                   data-emit-type="alpha"
+                                   required
+                                   autocomplete="off" />
+                            <div class="field-error" id="error-libelle"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── Ligne 2 : Heure début + Heure fin ── -->
+                    <div class="form-row-2">
+
+                        <div class="field-group">
+                            <label class="field-label" for="heureDebut">
+                                <i class="bi bi-clock me-1"></i>Heure de début <span class="required-star">*</span>
+                            </label>
+                            <input type="time"
+                                   id="heureDebut"
+                                   name="heureDebut"
+                                   class="emit-input"
+                                   data-emit-type="time-start"
+                                   required
+                                   autocomplete="off" />
+                            <div class="field-error" id="error-heureDebut"></div>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="heureFin">
+                                <i class="bi bi-clock-history me-1"></i>Heure de fin <span class="required-star">*</span>
+                            </label>
+                            <input type="time"
+                                   id="heureFin"
+                                   name="heureFin"
+                                   class="emit-input"
+                                   data-emit-type="time-end"
+                                   required
+                                   autocomplete="off" />
+                            <div class="field-error" id="error-heureFin"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── Ligne 3 : Salle + Enseignant ── -->
+                    <div class="form-row-2">
+
+                        <div class="field-group">
+                            <label class="field-label" for="salleId">
+                                <i class="bi bi-door-open-fill me-1"></i>Salle <span class="required-star">*</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="salleId" name="salleId" class="emit-select" required>
+                                    <option value="">— Choisir une salle —</option>
+                                    <option value="1">Salle A101</option>
+                                    <option value="2">Salle A102</option>
+                                    <option value="3">Labo Informatique</option>
+                                    <option value="4">Amphi 200</option>
+                                </select>
+                                <i class="bi bi-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="field-error" id="error-salleId"></div>
+                        </div>
+
+                        <div class="field-group">
+                            <label class="field-label" for="enseignantId">
+                                <i class="bi bi-person-badge-fill me-1"></i>Enseignant <span class="required-star">*</span>
+                            </label>
+                            <div class="select-wrapper">
+                                <select id="enseignantId" name="enseignantId" class="emit-select" required>
+                                    <option value="">— Chargement… —</option>
+                                </select>
+                                <i class="bi bi-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="field-error" id="error-enseignantId"></div>
+                        </div>
+
+                    </div>
+
+                    <!-- ── Actions formulaire ── -->
+                    <div class="form-actions">
+                        <a href="/Planning" class="btn-emit-ghost">
+                            <i class="bi bi-x-lg me-2"></i>Annuler
+                        </a>
+                        <button type="button"
+                                id="btnSubmit"
+                                class="btn-emit-primary"
+                                onclick="handleSubmit()">
+                            <i class="bi bi-check-lg me-2"></i>Créer la séance
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             Panneau d'aide latéral
+        ═══════════════════════════════════════════ -->
+        <div class="info-col">
+            <div class="card-emit info-card">
+                <div class="info-card-header">
+                    <i class="bi bi-info-circle-fill me-2" style="color:var(--accent);"></i>
+                    <span>Rappels</span>
+                </div>
+                <ul class="info-list">
+                    <li>
+                        <i class="bi bi-clock-fill"></i>
+                        <span>Les créneaux sont disponibles de <strong>7h30</strong> à <strong>18h30</strong>.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-exclamation-circle-fill" style="color:var(--warning);"></i>
+                        <span>Un conflit sera détecté automatiquement si la salle ou l'enseignant est déjà occupé.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-calendar-check-fill" style="color:var(--success);"></i>
+                        <span>Le dimanche est exclu du planning.</span>
+                    </li>
+                    <li>
+                        <i class="bi bi-shield-check-fill" style="color:var(--accent);"></i>
+                        <span>La soumission est bloquée tant qu'un conflit est détecté.</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Récap dynamique -->
+            <div class="card-emit recap-card" id="recapCard" style="display:none;">
+                <div class="info-card-header">
+                    <i class="bi bi-clipboard-check-fill me-2" style="color:var(--success);"></i>
+                    <span>Récapitulatif</span>
+                </div>
+                <div class="recap-grid">
+                    <div class="recap-row">
+                        <span class="recap-label"><i class="bi bi-calendar3 me-1"></i>Date</span>
+                        <span class="recap-value" id="recapDate">—</span>
+                    </div>
+                    <div class="recap-row">
+                        <span class="recap-label"><i class="bi bi-clock me-1"></i>Horaire</span>
+                        <span class="recap-value" id="recapHoraire">—</span>
+                    </div>
+                    <div class="recap-row">
+                        <span class="recap-label"><i class="bi bi-door-open me-1"></i>Salle</span>
+                        <span class="recap-value" id="recapSalle">—</span>
+                    </div>
+                    <div class="recap-row">
+                        <span class="recap-label"><i class="bi bi-person me-1"></i>Enseignant</span>
+                        <span class="recap-value" id="recapEnseignant">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     Styles spécifiques à Seance/Create
+═══════════════════════════════════════════════ -->
+<style>
+    .seance-create-page { padding: 1.5rem; }
+
+    /* ── En-tête ── */
+    .page-header-emit {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .page-header-left { display: flex; align-items: center; gap: 0.9rem; }
+    .btn-back {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        background: rgba(115,185,230,0.1);
+        border: 1px solid rgba(115,185,230,0.2);
+        color: var(--accent);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.1rem;
+        text-decoration: none;
+        transition: var(--transition);
+        flex-shrink: 0;
+    }
+    .btn-back:hover { background: var(--accent); color: var(--bg-primary); }
+    .page-icon-wrap {
+        width: 48px; height: 48px;
+        border-radius: var(--radius);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    .accent-calendar {
+        background: linear-gradient(135deg, #34D399, #059669);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(52,211,153,0.35);
+    }
+    .page-title-emit { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); margin: 0; }
+    .page-subtitle-emit { font-size: 0.82rem; color: var(--text-muted); margin: 0; margin-top: 2px; }
+
+    /* ── Layout deux colonnes ── */
+    .create-layout {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 1.5rem;
+        align-items: start;
+    }
+    @@media (max-width: 992px) {
+        .create-layout { grid-template-columns: 1fr; }
+        .info-col { order: -1; }
+    }
+
+    /* ── Carte formulaire ── */
+    .form-card { padding: 1.75rem 2rem; }
+
+    /* ── Alerte conflit ── */
+    .conflit-alert {
+        display: flex;
+        gap: 0.9rem;
+        align-items: flex-start;
+        background: rgba(248,113,113,0.12);
+        border: 1px solid rgba(248,113,113,0.4);
+        border-left: 4px solid var(--danger);
+        border-radius: 10px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 1.5rem;
+        animation: slideDown 0.25s ease;
+    }
+    @@keyframes slideDown {
+        from { opacity: 0; transform: translateY(-8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .conflit-alert-icon { font-size: 1.3rem; color: var(--danger); flex-shrink: 0; padding-top: 1px; }
+    .conflit-alert-body { flex: 1; }
+    .conflit-alert-body strong { color: var(--danger); font-size: 0.9rem; display: block; margin-bottom: 2px; }
+    .conflit-alert-body p { color: #FCA5A5; font-size: 0.85rem; }
+
+    /* ── Indicateur vérification ── */
+    .checking-indicator {
+        display: flex;
+        align-items: center;
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-bottom: 1rem;
+        padding: 0.5rem 0.75rem;
+        background: rgba(115,185,230,0.08);
+        border-radius: 8px;
+        animation: pulse-opacity 1s ease-in-out infinite;
+    }
+    @@keyframes pulse-opacity { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+    /* ── Grilles de champs ── */
+    .form-row-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    @@media (max-width: 576px) {
+        .form-row-2 { grid-template-columns: 1fr; }
+        .form-card { padding: 1.25rem; }
+    }
+    .field-group { display: flex; flex-direction: column; gap: 6px; }
+    .field-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .required-star { color: var(--danger); }
+
+    /* ── Inputs ── */
+    .emit-input {
+        background: rgba(23,37,84,0.6);
+        border: 1px solid rgba(115,185,230,0.2);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        font-size: 0.88rem;
+        padding: 0.6rem 0.85rem;
+        transition: var(--transition);
+        outline: none;
+        width: 100%;
+    }
+    .emit-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(115,185,230,0.15);
+    }
+    .emit-input.is-invalid { border-color: var(--danger); }
+    .emit-input.is-valid { border-color: var(--success); }
+    .emit-input::-webkit-calendar-picker-indicator { filter: invert(0.6) sepia(1) saturate(5) hue-rotate(175deg); }
+
+    /* ── Selects ── */
+    .select-wrapper { position: relative; }
+    .emit-select {
+        width: 100%;
+        background: rgba(23,37,84,0.6);
+        border: 1px solid rgba(115,185,230,0.2);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        font-size: 0.88rem;
+        padding: 0.6rem 2.2rem 0.6rem 0.85rem;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        transition: var(--transition);
+        outline: none;
+    }
+    .emit-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(115,185,230,0.15); }
+    .emit-select.is-invalid { border-color: var(--danger); }
+    .emit-select option { background: #1F4E79; color: var(--text-primary); }
+    .select-arrow {
+        position: absolute; right: 0.7rem; top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-muted); font-size: 0.75rem; pointer-events: none;
+    }
+
+    /* ── Erreurs champs ── */
+    .field-error {
+        font-size: 0.76rem;
+        color: var(--danger);
+        min-height: 1.1em;
+        display: none;
+    }
+    .field-error.visible { display: block; }
+
+    /* ── Actions ── */
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.75rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid rgba(115,185,230,0.1);
+    }
+    .btn-emit-ghost {
+        display: inline-flex; align-items: center;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        border: 1px solid rgba(115,185,230,0.3);
+        color: var(--text-muted);
+        font-family: var(--font-main);
+        font-size: 0.88rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: var(--transition);
+    }
+    .btn-emit-ghost:hover { border-color: var(--accent); color: var(--accent); background: rgba(115,185,230,0.08); }
+
+    /* ── Carte info latérale ── */
+    .info-card, .recap-card { padding: 1.25rem 1.4rem; margin-bottom: 1rem; }
+    .info-card-header {
+        font-size: 0.82rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--text-muted);
+        display: flex; align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid rgba(115,185,230,0.1);
+    }
+    .info-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+    .info-list li { display: flex; gap: 0.7rem; align-items: flex-start; }
+    .info-list li i { font-size: 0.95rem; color: var(--text-muted); flex-shrink: 0; margin-top: 1px; }
+    .info-list li span { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+    .info-list li strong { color: var(--text-primary); }
+
+    /* ── Récap ── */
+    .recap-grid { display: flex; flex-direction: column; gap: 0.6rem; }
+    .recap-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+    .recap-label { font-size: 0.78rem; color: var(--text-muted); display: flex; align-items: center; white-space: nowrap; }
+    .recap-value { font-size: 0.82rem; color: var(--text-primary); font-weight: 500; text-align: right; }
+</style>
+
+@section Scripts {
+<script>
+(function () {
+    'use strict';
+
+    /* ── Salle labels ── */
+    const SALLE_LABELS = {
+        '1': 'Salle A101',
+        '2': 'Salle A102',
+        '3': 'Labo Informatique',
+        '4': 'Amphi 200',
+    };
+
+    /* ── État conflit ── */
+    let hasConflit = false;
+
+    /* ── Refs DOM ── */
+    const form          = document.getElementById('seanceForm');
+    const btnSubmit     = document.getElementById('btnSubmit');
+    const conflitAlert  = document.getElementById('conflitAlert');
+    const conflitTitle  = document.getElementById('conflitTitle');
+    const conflitMsg    = document.getElementById('conflitMessage');
+    const checkingInd   = document.getElementById('checkingIndicator');
+    const recapCard     = document.getElementById('recapCard');
+
+    /* Utilitaire : debounce */
+    function debounce(fn, delay) {
+        let timer;
+        return function (...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn.apply(this, args), delay);
+        };
+    }
+
+    /* Chargement des enseignants via MockAPI */
+    async function loadEnseignants() {
+        const sel = document.getElementById('enseignantId');
+        try {
+            const list = await window.MockAPI.getEnseignants();
+            sel.innerHTML = '<option value="">— Choisir un enseignant —</option>';
+            list.forEach(e => {
+                const opt = document.createElement('option');
+                opt.value = e.id;
+                opt.textContent = `${e.prenom} ${e.nom}`;
+                sel.appendChild(opt);
+            });
+        } catch {
+            sel.innerHTML = '<option value="">Erreur de chargement</option>';
+            window.showToast('Impossible de charger les enseignants.', 'error');
+        }
+    }
+
+    /* Construction du payload de vérification conflit */
+    function buildConflitPayload() {
+        const date        = document.getElementById('date').value;
+        const heureDebut  = document.getElementById('heureDebut').value;
+        const heureFin    = document.getElementById('heureFin').value;
+        const salleId     = document.getElementById('salleId').value;
+        const enseignantId = document.getElementById('enseignantId').value;
+
+        if (!date || !heureDebut || !heureFin || !salleId || !enseignantId) return null;
+
+        return {
+            date,
+            heureDebut,
+            heureFin,
+            salleId: parseInt(salleId, 10),
+            enseignantId: parseInt(enseignantId, 10),
+            seanceId: null,
+        };
+    }
+
+    /* Affichage / masquage de l'alerte conflit*/
+    function showConflitAlert(message, type) {
+        hasConflit = true;
+        const typeLabel = {
+            salle: 'Conflit de salle',
+            prof:  'Conflit enseignant',
+            groupe: 'Conflit de groupe',
+        }[type] || 'Conflit détecté';
+        conflitTitle.textContent = typeLabel;
+        conflitMsg.textContent   = message;
+        conflitAlert.style.display = 'flex';
+        btnSubmit.disabled = true;
+        btnSubmit.style.opacity = '0.5';
+    }
+
+    function hideConflitAlert() {
+        hasConflit = false;
+        conflitAlert.style.display = 'none';
+        btnSubmit.disabled = false;
+        btnSubmit.style.opacity = '';
+    }
+
+    /* Vérification conflit asynchrone*/
+    const checkConflit = debounce(async function () {
+        const payload = buildConflitPayload();
+        if (!payload) {
+            hideConflitAlert();
+            return;
+        }
+
+        checkingInd.style.display = 'flex';
+        try {
+            const result = await window.MockAPI.checkConflit(payload);
+            if (result.hasConflit) {
+                showConflitAlert(result.message, result.type);
+            } else {
+                hideConflitAlert();
+            }
+        } catch {
+            /* En cas d'erreur réseau on ne bloque pas la soumission */
+            hideConflitAlert();
+        } finally {
+            checkingInd.style.display = 'none';
+        }
+    }, 500);
+
+    /* Mise à jour du récapitulatif latéral */
+    function updateRecap() {
+        const date         = document.getElementById('date').value;
+        const heureDebut   = document.getElementById('heureDebut').value;
+        const heureFin     = document.getElementById('heureFin').value;
+        const salleId      = document.getElementById('salleId').value;
+        const enseignantId = document.getElementById('enseignantId').value;
+        const enseignantSel = document.getElementById('enseignantId');
+        const enseignantLabel = enseignantId
+            ? enseignantSel.options[enseignantSel.selectedIndex]?.textContent
+            : null;
+
+        const anyFilled = date || heureDebut || heureFin || salleId || enseignantId;
+        recapCard.style.display = anyFilled ? 'block' : 'none';
+
+        document.getElementById('recapDate').textContent =
+            date ? new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—';
+        document.getElementById('recapHoraire').textContent =
+            (heureDebut && heureFin) ? `${heureDebut} → ${heureFin}` : (heureDebut || '—');
+        document.getElementById('recapSalle').textContent =
+            salleId ? (SALLE_LABELS[salleId] || '—') : '—';
+        document.getElementById('recapEnseignant').textContent =
+            enseignantLabel && enseignantLabel !== '— Choisir un enseignant —'
+                ? enseignantLabel : '—';
+    }
+
+    /* Listeners sur les champs déclencheurs*/
+    ['date', 'heureDebut', 'heureFin', 'salleId', 'enseignantId'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('change', () => {
+            updateRecap();
+            checkConflit();
+        });
+        /* Pour les inputs texte/time on écoute aussi 'input' */
+        if (el.tagName === 'INPUT') {
+            el.addEventListener('input', () => {
+                updateRecap();
+                checkConflit();
+            });
+        }
+    });
+
+    /* Soumission du formulaire (exposée globalement)*/
+    window.handleSubmit = function () {
+        /* 1. Vérification ValidationEngine */
+        if (window.ValidationEngine && !window.ValidationEngine.validate(form)) {
+            window.showToast('Veuillez corriger les erreurs du formulaire.', 'warning');
+            return;
+        }
+
+        /* 2. Blocage si conflit actif */
+        if (hasConflit) {
+            window.showToast('Impossible de créer la séance : un conflit a été détecté.', 'error');
+            return;
+        }
+
+        /* 3. Construction du payload */
+        const payload = {
+            date:         document.getElementById('date').value,
+            heureDebut:   document.getElementById('heureDebut').value,
+            heureFin:     document.getElementById('heureFin').value,
+            salleId:      parseInt(document.getElementById('salleId').value, 10),
+            enseignantId: parseInt(document.getElementById('enseignantId').value, 10),
+            libelle:      document.getElementById('libelle').value.trim(),
+            token:        window.getAntiForgeryToken(),
+        };
+
+        /* 4. Appel via fetchWithSpinner */
+        window.fetchWithSpinner(
+            btnSubmit,
+            window.MockAPI.createSeance(payload)
+        ).then(result => {
+            if (result && result.success) {
+                window.showToast('Séance créée avec succès !', 'success');
+                setTimeout(() => { window.location.href = '/Planning'; }, 900);
+            } else {
+                window.showToast(
+                    (result && result.message) || 'Une erreur est survenue.',
+                    'error'
+                );
+            }
+        }).catch(() => {
+            window.showToast('Erreur réseau. Veuillez réessayer.', 'error');
+        });
+    };
+
+    /* Initialisation*/
+    document.addEventListener('DOMContentLoaded', function () {
+        loadEnseignants();
+        /* Date minimale = aujourd'hui */
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('date').min = today;
+    });
+
+})();
+</script>
+}
