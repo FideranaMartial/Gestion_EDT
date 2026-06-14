@@ -1,0 +1,69 @@
+@model Gestion_EDT.Models.UtilisateurFormModel
+@{
+    ViewData["Title"] = "Nouveau compte";
+}
+
+<h2 class="mb-3">Créer un compte utilisateur</h2>
+
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+<form asp-action="Create" method="post" class="row g-3" style="max-width:520px">
+    @Html.AntiForgeryToken()
+
+    <div class="col-12">
+        <label asp-for="Login" class="form-label"></label>
+        <input asp-for="Login" class="form-control" />
+        <span asp-validation-for="Login" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Password" class="form-label"></label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="NomComplet" class="form-label"></label>
+        <input asp-for="NomComplet" class="form-control" />
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Role" class="form-label"></label>
+        <select asp-for="Role" asp-items="ViewBag.Roles as SelectList" class="form-select" id="roleSelect"></select>
+    </div>
+
+    <div class="col-12" id="enseignantGroup">
+        <label asp-for="EnseignantId" class="form-label"></label>
+        <select asp-for="EnseignantId" asp-items="ViewBag.Enseignants as SelectList" class="form-select">
+            <option value="">-- Aucun --</option>
+        </select>
+        <small class="text-muted">Permet de filtrer automatiquement le planning de cet enseignant (T14).</small>
+    </div>
+
+    <div class="col-12 form-check">
+        <input asp-for="Actif" class="form-check-input" />
+        <label asp-for="Actif" class="form-check-label"></label>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Créer</button>
+        <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Affiche le select Enseignant uniquement si le rôle est "Enseignant"
+        const roleSelect = document.getElementById('roleSelect');
+        const enseignantGroup = document.getElementById('enseignantGroup');
+
+        function toggleEnseignant() {
+            enseignantGroup.style.display =
+                roleSelect.value === 'Enseignant' ? 'block' : 'none';
+        }
+
+        roleSelect.addEventListener('change', toggleEnseignant);
+        toggleEnseignant();
+    </script>
+}

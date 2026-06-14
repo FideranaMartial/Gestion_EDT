@@ -1,0 +1,58 @@
+@{
+    Layout = null;
+    ViewData["Title"] = "Accès refusé";
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F1EFE8;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+        .card-denied {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,.1);
+            max-width: 420px;
+            padding: 40px 32px;
+            text-align: center;
+        }
+        .icon {
+            font-size: 48px;
+            color: #A32D2D;
+            margin-bottom: 12px;
+        }
+        h1 { font-size: 20px; font-weight: 600; color: #26215C; }
+        p  { font-size: 14px; color: #5F5E5A; }
+        .btn-emit {
+            background: #3C3489;
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            padding: 10px 24px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 12px;
+        }
+        .btn-emit:hover { background: #26215C; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="card-denied">
+        <div class="icon">⛔</div>
+        <h1>Accès refusé</h1>
+        <p>Vous n'avez pas les autorisations nécessaires pour accéder à cette page.</p>
+        <a class="btn-emit" href="/Home/Index">Retour à l'accueil</a>
+    </div>
+</body>
+</html>

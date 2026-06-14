@@ -1,0 +1,56 @@
+@* ════════════════════════════════════════════════════════════════
+   _LoginPartial.cshtml
+   À inclure dans _Layout.cshtml, dans la barre de navigation,
+   par exemple : <partial name="_LoginPartial" />
+═══════════════════════════════════════════════════════════════ *@
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+    var nomComplet = User.FindFirst("NomComplet")?.Value ?? User.Identity.Name;
+    var role       = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle text-light" href="#" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                👤 @nomComplet
+                @switch (role)
+                {
+                    case "Admin":   <span class="badge bg-light text-dark ms-1">Admin</span> break;
+                    case "RespEDT": <span class="badge bg-light text-dark ms-1">Resp. EDT</span> break;
+                    default:        <span class="badge bg-light text-dark ms-1">Enseignant</span> break;
+                }
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <a class="dropdown-item" asp-controller="Account" asp-action="ChangePassword">
+                        Changer mon mot de passe
+                    </a>
+                </li>
+                @if (role == "Admin")
+                {
+                    <li>
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Index">
+                            Gérer les comptes
+                        </a>
+                    </li>
+                }
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form asp-controller="Account" asp-action="Logout" method="post">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="dropdown-item text-danger">Déconnexion</button>
+                    </form>
+                </li>
+            </ul>
+        </li>
+    </ul>
+}
+else
+{
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link text-light" asp-controller="Account" asp-action="Login">Connexion</a>
+        </li>
+    </ul>
+}

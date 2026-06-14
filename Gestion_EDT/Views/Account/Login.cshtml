@@ -1,0 +1,173 @@
+@model Gestion_EDT.Models.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Connexion — EMIT";
+}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+            --emit-primary: #3C3489;
+            --emit-primary-dark: #26215C;
+            --emit-accent: #0F6E56;
+            --emit-bg: #F1EFE8;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--emit-primary) 0%, var(--emit-primary-dark) 100%);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        .login-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0,0,0,.25);
+            width: 100%;
+            max-width: 400px;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .login-header {
+            background: var(--emit-primary);
+            color: #fff;
+            text-align: center;
+            padding: 28px 24px 22px;
+        }
+
+        .login-header .logo {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--emit-primary);
+            font-weight: 700;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+
+        .login-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .login-header p {
+            font-size: 12px;
+            opacity: .85;
+            margin: 4px 0 0;
+        }
+
+        .login-body {
+            padding: 28px 28px 24px;
+        }
+
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--emit-primary-dark);
+        }
+
+        .form-control:focus {
+            border-color: var(--emit-primary);
+            box-shadow: 0 0 0 .2rem rgba(60,52,137,.15);
+        }
+
+        .btn-emit {
+            background: var(--emit-primary);
+            border: none;
+            color: #fff;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 6px;
+            width: 100%;
+            transition: background .15s;
+        }
+
+        .btn-emit:hover {
+            background: var(--emit-primary-dark);
+            color: #fff;
+        }
+
+        .alert-danger {
+            font-size: 13px;
+            padding: 10px 12px;
+        }
+
+        .form-check-label {
+            font-size: 13px;
+        }
+
+        .login-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #888780;
+            padding: 0 24px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <div class="logo">EMIT</div>
+            <h1>Gestion EDT — EMIT</h1>
+            <p>Connexion à votre espace</p>
+        </div>
+
+        <div class="login-body">
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
+            <form asp-controller="Account" asp-action="Login" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="ReturnUrl" />
+
+                <div class="mb-3">
+                    <label asp-for="Login" class="form-label">Identifiant</label>
+                    <input asp-for="Login" class="form-control" placeholder="ex : admin" autofocus />
+                    <span asp-validation-for="Login" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Mot de passe</label>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3 form-check">
+                    <input asp-for="RememberMe" class="form-check-input" />
+                    <label asp-for="RememberMe" class="form-check-label">Se souvenir de moi</label>
+                </div>
+
+                <button type="submit" class="btn btn-emit">Se connecter</button>
+            </form>
+        </div>
+
+        <div class="login-footer">
+            EMIT — Plateforme de gestion des salles et emplois du temps
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

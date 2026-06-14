@@ -1,0 +1,68 @@
+@model Gestion_EDT.Models.UtilisateurFormModel
+@{
+    ViewData["Title"] = "Modifier le compte";
+}
+
+<h2 class="mb-3">Modifier le compte : @Model.Login</h2>
+
+<div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+<form asp-action="Edit" asp-route-id="@Model.Id" method="post" class="row g-3" style="max-width:520px">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+
+    <div class="col-12">
+        <label asp-for="Login" class="form-label"></label>
+        <input asp-for="Login" class="form-control" />
+        <span asp-validation-for="Login" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Password" class="form-label">Nouveau mot de passe</label>
+        <input asp-for="Password" type="password" class="form-control" placeholder="Laisser vide pour ne pas changer" />
+        <span asp-validation-for="Password" class="text-danger small"></span>
+    </div>
+
+    <div class="col-12">
+        <label asp-for="NomComplet" class="form-label"></label>
+        <input asp-for="NomComplet" class="form-control" />
+    </div>
+
+    <div class="col-12">
+        <label asp-for="Role" class="form-label"></label>
+        <select asp-for="Role" asp-items="ViewBag.Roles as SelectList" class="form-select" id="roleSelect"></select>
+    </div>
+
+    <div class="col-12" id="enseignantGroup">
+        <label asp-for="EnseignantId" class="form-label"></label>
+        <select asp-for="EnseignantId" asp-items="ViewBag.Enseignants as SelectList" class="form-select">
+            <option value="">-- Aucun --</option>
+        </select>
+    </div>
+
+    <div class="col-12 form-check">
+        <input asp-for="Actif" class="form-check-input" />
+        <label asp-for="Actif" class="form-check-label"></label>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a asp-action="Index" class="btn btn-secondary">Annuler</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        const roleSelect = document.getElementById('roleSelect');
+        const enseignantGroup = document.getElementById('enseignantGroup');
+
+        function toggleEnseignant() {
+            enseignantGroup.style.display =
+                roleSelect.value === 'Enseignant' ? 'block' : 'none';
+        }
+
+        roleSelect.addEventListener('change', toggleEnseignant);
+        toggleEnseignant();
+    </script>
+}
