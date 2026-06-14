@@ -71,7 +71,7 @@ namespace Gestion_EDT.Controllers
             if (TempData["Success"] != null) ViewData["Success"] = TempData["Success"];
             if (TempData["Error"]   != null) ViewData["Error"]   = TempData["Error"];
 
-            return View(seances);
+            return RedirectToAction(nameof(Create));
         }
 
         // ── GET /Seances/Create ──────────────────────────────────────
