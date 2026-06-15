@@ -87,6 +87,16 @@
      ════════════════════════════════════════ */
 
   window.showConfirmModal = function (options = {}) {
+
+    // Dans site.js, au début de showConfirmModal
+if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
+    console.error('Bootstrap Modal non disponible');
+    // Fallback
+    const result = confirm(message);
+    resolve(result);
+    return;
+}
+
     return new Promise((resolve) => {
       const modal = document.getElementById('confirmModal');
       if (!modal) {

@@ -1,4 +1,4 @@
-@* *@
+@* FICHIER : /Views/Mentions/Index.cshtml (CORRIGÉ) *@
 @{
     ViewData["Title"] = "Mentions";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -339,18 +339,16 @@
 (function () {
     'use strict';
 
-    /* ── État global ── */
     let _allMentions = [];
     let _activeFilter = 'all';
     let _searchQuery  = '';
 
-    /* ── Helpers ── */
-    function esc(s) { return window._emitEscapeHtml ? window._emitEscapeHtml(String(s ?? '')) : String(s ?? ''); }
+    function escapeHtml(str) { return window._emitEscapeHtml ? window._emitEscapeHtml(str) : str; }
 
     function getNiveauClass(niveau) {
         if (!niveau) return 'licence';
         const n = niveau.toLowerCase();
-        if (n === 'master')   return 'master';
+        if (n === 'master') return 'master';
         if (n === 'doctorat') return 'doctorat';
         return 'licence';
     }
@@ -358,7 +356,7 @@
     function getNiveauIcon(niveau) {
         if (!niveau) return 'bi-bookmark';
         const n = niveau.toLowerCase();
-        if (n === 'master')   return 'bi-bookmark-star-fill';
+        if (n === 'master') return 'bi-bookmark-star-fill';
         if (n === 'doctorat') return 'bi-trophy-fill';
         return 'bi-bookmark-fill';
     }
@@ -370,188 +368,97 @@
         return (parts[0][0] + parts[1][0]).toUpperCase();
     }
 
-    /* ── Construction d'une ligne <tr> ── */
     function buildRow(mention, index) {
-        const cls  = getNiveauClass(mention.niveau);
+        const cls = getNiveauClass(mention.niveau);
         const icon = getNiveauIcon(mention.niveau);
         const init = getInitials(mention.nom);
-
         return `
-        <tr class="mention-row"
-            data-id="${esc(mention.id)}"
-            data-nom="${esc(mention.nom.toLowerCase())}"
-            data-niveau="${esc((mention.niveau || '').toLowerCase())}"
-            role="row">
-            <td style="text-align:center;">
-                <div class="row-index">${index + 1}</div>
-            </td>
-            <td>
-                <div class="cell-nom">
-                    <div class="nom-avatar ${cls}" aria-hidden="true">${esc(init)}</div>
-                    <div class="nom-text">
-                        <strong>${esc(mention.nom)}</strong>
-                        <span>Mention #${esc(mention.id)}</span>
-                    </div>
-                </div>
-            </td>
-            <td>
-                <span class="badge-niveau ${cls}">
-                    <i class="bi ${icon}" aria-hidden="true"></i>
-                    ${esc(mention.niveau)}
-                </span>
-            </td>
-            <td>
-                <div class="actions-cell">
-                    <a href="/Mentions/Edit?id=${esc(mention.id)}"
-                       class="btn-icon-emit"
-                       title="Modifier ${esc(mention.nom)}"
-                       aria-label="Modifier la mention ${esc(mention.nom)}">
-                        <i class="bi bi-pencil-fill" aria-hidden="true"></i>
-                    </a>
-                    <button type="button"
-                            class="btn-icon-emit danger btn-delete"
-                            data-id="${esc(mention.id)}"
-                            data-nom="${esc(mention.nom)}"
-                            title="Supprimer ${esc(mention.nom)}"
-                            aria-label="Supprimer la mention ${esc(mention.nom)}">
-                        <i class="bi bi-trash3-fill" aria-hidden="true"></i>
-                    </button>
-                </div>
-            </td>
+        <tr class="mention-row" data-id="${mention.id}" data-nom="${escapeHtml(mention.nom.toLowerCase())}" data-niveau="${(mention.niveau || '').toLowerCase()}" role="row">
+            <td style="text-align:center;"><div class="row-index">${index + 1}</div></td>
+            <td><div class="cell-nom"><div class="nom-avatar ${cls}" aria-hidden="true">${escapeHtml(init)}</div><div class="nom-text"><strong>${escapeHtml(mention.nom)}</strong><span>Mention #${mention.id}</span></div></div></td>
+            <td><span class="badge-niveau ${cls}"><i class="bi ${icon}" aria-hidden="true"></i>${escapeHtml(mention.niveau)}</span></td>
+            <td><div class="actions-cell"><a href="/Mentions/Edit?id=${mention.id}" class="btn-icon-emit" title="Modifier"><i class="bi bi-pencil-fill"></i></a><button type="button" class="btn-icon-emit danger btn-delete" data-id="${mention.id}" data-nom="${escapeHtml(mention.nom)}" title="Supprimer"><i class="bi bi-trash3-fill"></i></button></div></td>
         </tr>`;
     }
 
-    /* ── Rendu du tableau ── */
     function renderTable(mentions) {
-        const tbody   = document.getElementById('mentions-tbody');
-        const noRes   = document.getElementById('no-result');
+        const tbody = document.getElementById('mentions-tbody');
+        const noRes = document.getElementById('no-result');
         const countEl = document.getElementById('mentions-count');
-
         if (!tbody) return;
-
         if (mentions.length === 0) {
             tbody.innerHTML = '';
             if (noRes) noRes.style.display = 'block';
             if (countEl) countEl.innerHTML = '<strong>0</strong> résultat';
             return;
         }
-
         if (noRes) noRes.style.display = 'none';
         tbody.innerHTML = mentions.map((m, i) => buildRow(m, i)).join('');
-
-        const total = mentions.length;
-        const of    = _allMentions.length;
-        if (countEl) {
-            countEl.innerHTML = total === of
-                ? `<strong>${total}</strong> mention${total > 1 ? 's' : ''}`
-                : `<strong>${total}</strong> / ${of} mention${of > 1 ? 's' : ''}`;
-        }
+        countEl.innerHTML = `<strong>${mentions.length}</strong> mention${mentions.length > 1 ? 's' : ''}`;
     }
 
-    /* ── Filtrage combiné recherche + niveau ── */
     function applyFilters() {
         let result = _allMentions.slice();
-
         if (_activeFilter !== 'all') {
             result = result.filter(m => (m.niveau || '').toLowerCase() === _activeFilter.toLowerCase());
         }
-
         if (_searchQuery.trim()) {
             const q = _searchQuery.trim().toLowerCase();
-            result = result.filter(m =>
-                m.nom.toLowerCase().includes(q) ||
-                (m.niveau || '').toLowerCase().includes(q)
-            );
+            result = result.filter(m => m.nom.toLowerCase().includes(q) || (m.niveau || '').toLowerCase().includes(q));
         }
-
         renderTable(result);
     }
 
-    /* ── Suppression ── */
     async function handleDelete(btn) {
-        const id  = parseInt(btn.dataset.id, 10);
+        const id = parseInt(btn.dataset.id, 10);
         const nom = btn.dataset.nom || 'cette mention';
-
         const confirmed = await window.showConfirmModal({
-            title:        'Supprimer la mention',
-            message:      `Voulez-vous vraiment supprimer la mention <strong>"${esc(nom)}"</strong> ?<br>
-                           <small style="color:var(--warning);margin-top:8px;display:block;">
-                               <i class="bi bi-exclamation-triangle-fill" style="margin-right:4px;"></i>
-                               Cette action est irréversible. Les parcours associés seront affectés.
-                           </small>`,
-            confirmText:  'Supprimer',
-            cancelText:   'Annuler',
+            title: 'Supprimer la mention',
+            message: `Voulez-vous vraiment supprimer la mention <strong>"${escapeHtml(nom)}"</strong> ?<br><small class="text-warning">Cette action est irréversible.</small>`,
+            confirmText: 'Supprimer',
             confirmClass: 'btn-danger-emit',
-            icon:         'bi-trash3-fill',
+            icon: 'bi-trash3-fill'
         });
-
         if (!confirmed) return;
-
         try {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            if (!token) throw new Error('Token CSRF manquant');
-
-            const response = await fetch(`/Mentions/Delete/${id}`, {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const response = await fetch(`/Mentions/DeleteAjax/${id}`, {
                 method: 'POST',
-                headers: {
-                    'RequestVerificationToken': token
-                }
-                // Pas de Content-Type, pas de body
+                headers: { 'RequestVerificationToken': token }
             });
-
-            if (response.ok) {
-                // Suppression réussie (le serveur a redirigé, mais on ignore la redirection)
-                // Retrait animé de la ligne
-                const row = document.querySelector(`.mention-row[data-id="${id}"]`);
-                if (row) {
-                    row.classList.add('deleting');
-                    row.addEventListener('transitionend', () => {
-                        row.remove();
-                        _allMentions = _allMentions.filter(m => m.id !== id);
-                        applyFilters();
-                    }, { once: true });
-                    setTimeout(() => {
-                        if (row.parentNode) {
-                            row.remove();
-                            _allMentions = _allMentions.filter(m => m.id !== id);
-                            applyFilters();
-                        }
-                    }, 400);
-                } else {
-                    _allMentions = _allMentions.filter(m => m.id !== id);
-                    applyFilters();
-                }
-                window.showToast(`La mention "${nom}" a été supprimée.`, 'success', 'Suppression réussie');
+            const result = await response.json();
+            if (result.success) {
+                window.showToast(result.message, 'success');
+                _allMentions = _allMentions.filter(m => m.id !== id);
+                applyFilters();
             } else {
-                const text = await response.text();
-                throw new Error(text || 'Erreur serveur');
+                window.showToast(result.message, 'error');
             }
         } catch (err) {
-            window.handleApiError(err, 'deleteMention');
+            window.showToast('Erreur lors de la suppression', 'error');
         }
     }
 
-    /* ── Délégation des clics de suppression ── */
     function initDeleteDelegation() {
         const tbody = document.getElementById('mentions-tbody');
-        if (!tbody) return;
-        tbody.addEventListener('click', (e) => {
-            const btn = e.target.closest('.btn-delete');
-            if (btn) handleDelete(btn);
-        });
+        if (tbody) {
+            tbody.addEventListener('click', (e) => {
+                const btn = e.target.closest('.btn-delete');
+                if (btn) handleDelete(btn);
+            });
+        }
     }
 
-    /* ── Recherche instantanée ── */
     function initSearch() {
         const input = document.getElementById('search-input');
-        if (!input) return;
-        input.addEventListener('input', () => {
-            _searchQuery = input.value;
-            applyFilters();
-        });
+        if (input) {
+            input.addEventListener('input', () => {
+                _searchQuery = input.value;
+                applyFilters();
+            });
+        }
     }
 
-    /* ── Filtres par niveau ── */
     function initFilterButtons() {
         const btns = document.querySelectorAll('[data-filter]');
         btns.forEach(btn => {
@@ -562,59 +469,42 @@
                 applyFilters();
             });
         });
-        /* Actif par défaut */
         const allBtn = document.querySelector('[data-filter="all"]');
         if (allBtn) allBtn.classList.add('active');
     }
 
-    /* ── Chargement initial ── */
     async function loadMentions() {
         try {
             const response = await fetch('/Mentions/GetMentionsJson');
-            if (!response.ok) throw { code: response.status, message: 'Impossible de charger les mentions' };
-            const mentions = await response.json();
-            _allMentions   = mentions;
-
-            /* Cache skeleton, affiche table */
-            const skel = document.getElementById('table-skeleton');
-            const real = document.getElementById('table-real');
-            if (skel) skel.style.display = 'none';
-            if (real) real.style.display = 'block';
-
+            if (!response.ok) throw new Error('Erreur réseau');
+            const data = await response.json();
+            if (!Array.isArray(data)) throw new Error("Les données ne sont pas un tableau");
+            
+            _allMentions = data.map(item => ({
+                id: item.id,
+                nom: item.nom,
+                niveau: item.niveau || 'Non défini'
+            }));
+            
+            document.getElementById('table-skeleton').style.display = 'none';
+            document.getElementById('table-real').style.display = 'block';
             applyFilters();
-
         } catch (err) {
-            window.handleApiError(err, 'getMentions');
-
-            /* Afficher message d'erreur dans la table */
-            const skel = document.getElementById('table-skeleton');
-            if (skel) {
-                skel.innerHTML = `
-                <div style="padding:40px;text-align:center;color:var(--danger);">
-                    <i class="bi bi-wifi-off" style="font-size:32px;display:block;margin-bottom:12px;"></i>
-                    <p style="font-size:14px;">Impossible de charger les mentions. Rechargez la page.</p>
-                </div>`;
-            }
+            console.error(err);
+            window.showToast('Erreur chargement mentions', 'error');
+            document.getElementById('table-skeleton').innerHTML = '<div class="alert alert-danger text-center py-5">Erreur de chargement. <button onclick="location.reload()" class="btn btn-sm btn-danger">Réessayer</button></div>';
         }
     }
 
-    /* ── Init ── */
     document.addEventListener('DOMContentLoaded', () => {
         loadMentions();
         initSearch();
         initFilterButtons();
         initDeleteDelegation();
-
-        /* Message succès depuis Create/Edit */
         const params = new URLSearchParams(window.location.search);
-        if (params.get('created') === '1') {
-            window.showToast('Mention créée avec succès.', 'success', 'Création réussie');
-        }
-        if (params.get('updated') === '1') {
-            window.showToast('Mention mise à jour avec succès.', 'success', 'Modification réussie');
-        }
+        if (params.get('created') === '1') window.showToast('Mention créée avec succès.', 'success');
+        if (params.get('updated') === '1') window.showToast('Mention mise à jour.', 'success');
     });
-
 })();
 </script>
 }

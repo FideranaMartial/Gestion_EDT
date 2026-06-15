@@ -200,6 +200,37 @@ namespace Gestion_EDT.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> DeleteAjax(int id)
+{
+    try
+    {
+        var mention = await _db.Mentions
+            .Include(m => m.Cycles)
+                .ThenInclude(c => c.Parcours)
+                    .ThenInclude(p => p.Groupes)
+            .FirstOrDefaultAsync(m => m.Id == id);
+        if (mention == null)
+            return Json(new { success = false, message = "Mention non trouvée." });
+
+        bool aDesGroupes = mention.Cycles
+            .SelectMany(c => c.Parcours)
+            .SelectMany(p => p.Groupes)
+            .Any();
+        if (aDesGroupes)
+            return Json(new { success = false, message = "Impossible de supprimer : des groupes existent encore." });
+
+        _db.Mentions.Remove(mention);
+        await _db.SaveChangesAsync();
+        return Json(new { success = true, message = $"Mention \"{mention.nom_mention}\" supprimée." });
+    }
+    catch (Exception ex)
+    {
+        return Json(new { success = false, message = ex.Message });
+    }
+}
+
         // ── GET /Mentions/GetCycles/{mentionId} ──────────────────────
         // API JSON — filtre en cascade Mention → Cycles dans le Planning
         [HttpGet]

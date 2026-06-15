@@ -1020,3 +1020,24 @@ select.form-control-emit option {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
+
+/* Correction forcée de la modale de confirmation */
+#confirmModal.modal {
+    z-index: 1060;
+}
+#confirmModal .modal-dialog {
+    margin: 1.75rem auto !important;
+    max-width: 500px;
+    width: 90%;
+}
+#confirmModal .modal-dialog-centered {
+    display: flex;
+    align-items: center;
+    min-height: calc(100% - 3.5rem);
+}
+#confirmModal .modal-content {
+    border-radius: var(--radius);
+}
+.modal-backdrop {
+    z-index: 1050;
+}
