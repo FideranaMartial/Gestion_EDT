@@ -7,5 +7,5 @@
         public string nom_mention { get; set; }
 
         public ICollection<Cycle> Cycles { get; set; }
-}
+    }
 }

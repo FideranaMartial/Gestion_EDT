@@ -57,46 +57,63 @@ namespace Gestion_EDT.Controllers
         // ── GET /Mentions/Create ─────────────────────────────────────
         public IActionResult Create() => View(new Mention());
 
-        // ── POST /Mentions/Create ────────────────────────────────────
+                // ── POST /Mentions/Create ────────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Mention mentions)
+        public async Task<IActionResult> Create(Mention mention)
         {
-            if (!ModelState.IsValid) return View(mentions);
+            System.Diagnostics.Debug.WriteLine("=== CREATE POST ENTRÉE ===");
+            System.Diagnostics.Debug.WriteLine($"Nom: {mention?.nom_mention ?? "null"}");
+            System.Diagnostics.Debug.WriteLine($"Code: {mention?.code_mention ?? "null"}");
 
-            // RG02 — unicité du code_mention
-            bool existe = await _db.Mentions
-                .AnyAsync(m => m.code_mention == mentions.code_mention);
-            if (existe)
+            if (mention == null)
             {
-                ModelState.AddModelError(nameof(mentions.code_mention),
-                    "Ce code mention existe déjà.");
-                return View(mentions);
+                System.Diagnostics.Debug.WriteLine("Mention est null !");
+                return View(new Mention());
             }
 
-            mentions.code_mention = mentions.code_mention.Trim().ToUpperInvariant();
-            _db.Mentions.Add(mentions);
-            await _db.SaveChangesAsync();   // génère mention.Id
+            // Ignorer la validation de Cycles (non fourni par le formulaire)
+            ModelState.Remove("Cycles");
 
-            // RG03 — Créer les 2 cycles (Licence + Master)
-            var cycleL = new Cycle { nom_cycle = $"Licence {mentions.nom_mention}", niveau = "L", MentionId = mentions.Id };
-            var cycleM = new Cycle { nom_cycle = $"Master {mentions.nom_mention}",  niveau = "M", MentionId = mentions.Id };
+            if (!ModelState.IsValid)
+            {
+                System.Diagnostics.Debug.WriteLine("ModelState invalide");
+                return View(mention);
+            }
+
+            // Unicité
+            if (await _db.Mentions.AnyAsync(m => m.code_mention == mention.code_mention))
+            {
+                System.Diagnostics.Debug.WriteLine("Code déjà existant");
+                ModelState.AddModelError(nameof(mention.code_mention), "Ce code mention existe déjà.");
+                return View(mention);
+            }
+
+            mention.code_mention = mention.code_mention.Trim().ToUpperInvariant();
+            System.Diagnostics.Debug.WriteLine($"Code transformé: {mention.code_mention}");
+
+            _db.Mentions.Add(mention);
+            System.Diagnostics.Debug.WriteLine("Avant SaveChangesAsync");
+            await _db.SaveChangesAsync();
+            System.Diagnostics.Debug.WriteLine("Après SaveChangesAsync");
+
+            // Création des cycles (Licence + Master)
+            var cycleL = new Cycle { nom_cycle = $"Licence {mention.nom_mention}", niveau = "L", MentionId = mention.Id };
+            var cycleM = new Cycle { nom_cycle = $"Master {mention.nom_mention}", niveau = "M", MentionId = mention.Id };
             _db.Cycles.AddRange(cycleL, cycleM);
             await _db.SaveChangesAsync();
 
-            // RG04 — Créer les parcours L1, L2, L3 et M1, M2
+            // Création des parcours L1, L2, L3 et M1, M2
             var parcoursLicence = new[] { "L1", "L2", "L3" }
                 .Select(n => new Parcours { nom_parcours = n, CycleId = cycleL.Id });
             var parcoursMaster = new[] { "M1", "M2" }
                 .Select(n => new Parcours { nom_parcours = n, CycleId = cycleM.Id });
-
             _db.Parcours.AddRange(parcoursLicence);
             _db.Parcours.AddRange(parcoursMaster);
             await _db.SaveChangesAsync();
 
-            TempData["Success"] =
-                $"Mention \"{mentions.nom_mention}\" créée avec les cycles et niveaux L1→M2.";
-            return RedirectToAction(nameof(Index));
+            TempData["Success"] = $"Mention \"{mention.nom_mention}\" créée avec cycles et parcours.";
+            return RedirectToAction(nameof(Index), new { created = 1 });
         }
 
         // ── GET /Mentions/Edit/{id} ──────────────────────────────────
@@ -113,9 +130,13 @@ namespace Gestion_EDT.Controllers
         // ── POST /Mentions/Edit/{id} ─────────────────────────────────
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, Mention mention)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,code_mention,nom_mention")] Mention mention)
         {
             if (id != mention.Id) return BadRequest();
+
+            // Supprime la validation de Cycles (qui n'est pas soumise par le formulaire)
+            ModelState.Remove("Cycles");
+
             if (!ModelState.IsValid)
             {
                 ViewData["MentionId"] = id;
@@ -203,6 +224,18 @@ namespace Gestion_EDT.Controllers
                 .Select(p => new { p.Id, p.nom_parcours })
                 .ToListAsync();
             return Json(parcours);
+        }
+
+                // ── GET /Mentions/GetMentionsJson ───────────────────────────
+        // API JSON pour le chargement asynchrone dans la vue Index
+        [HttpGet]
+        public async Task<IActionResult> GetMentionsJson()
+        {
+            var mentions = await _db.Mentions
+                .OrderBy(m => m.nom_mention)
+                .Select(m => new { m.Id, Nom = m.nom_mention, Niveau = "Non défini" }) // Le niveau n'est pas stocké dans Mention, on peut le déduire ou le laisser vide
+                .ToListAsync();
+            return Json(mentions);
         }
     }
 }

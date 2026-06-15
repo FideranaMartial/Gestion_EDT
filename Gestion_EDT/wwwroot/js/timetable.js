@@ -260,7 +260,7 @@
     const btn = document.getElementById('btnNewSeance');
     if (btn) {
       btn.addEventListener('click', function () {
-        window.location.href = '/Seance/Create';
+        window.location.href = '/Seances/Create';
       });
     }
   }

@@ -1,0 +1,9 @@
+@{
+    Layout = null;
+}
+<form method="post" action="/Mentions/CreateSimple">
+    @Html.AntiForgeryToken()
+    <input name="nom_mention" placeholder="Nom" />
+    <input name="code_mention" placeholder="Code" />
+    <button type="submit">Créer</button>
+</form>

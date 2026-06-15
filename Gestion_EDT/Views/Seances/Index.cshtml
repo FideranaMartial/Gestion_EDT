@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Gestion des séances";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-5 text-center">
+    <div class="alert alert-info">
+        <i class="bi bi-calendar-week-fill me-2"></i>
+        La gestion des séances s'effectue depuis le <strong>planning</strong> ou la <strong>création directe</strong>.
+    </div>
+    <div class="mt-4">
+        <a href="/Planning" class="btn-primary-emit me-3">
+            <i class="bi bi-calendar-week"></i> Voir le planning
+        </a>
+        <a href="/Seances/Create" class="btn-primary-emit">
+            <i class="bi bi-plus-circle"></i> Créer une séance
+        </a>
+    </div>
+    <div class="mt-4 text-muted">
+        Redirection automatique vers le planning dans <span id="countdown">3</span> secondes…
+    </div>
+</div>
+
+<script>
+    // Compte à rebours et redirection automatique
+    let seconds = 3;
+    const countdownSpan = document.getElementById('countdown');
+    const interval = setInterval(() => {
+        seconds--;
+        if (countdownSpan) countdownSpan.textContent = seconds;
+        if (seconds <= 0) {
+            clearInterval(interval);
+            window.location.href = '/Planning';
+        }
+    }, 1000);
+</script>

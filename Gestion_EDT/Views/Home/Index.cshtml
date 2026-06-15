@@ -1,6 +1,4 @@
-@* 
-
-*@
+@* FICHIER : /Views/Home/Index.cshtml *@
 @{
     ViewData["Title"] = "Dashboard";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -200,7 +198,7 @@
     margin-top: 1px;
 }
 
-/* ─── ACTIVITY STRIP ─── */
+/* ACTIVITY STRIP */
 .activity-strip {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -289,7 +287,7 @@
 
 <div class="dashboard-root animate-fadein">
 
-    @* En-tête page  *@
+    @* En-tête page *@
     <div class="section-header" style="margin-bottom:0;">
         <div>
             <h1 class="section-heading">Tableau de bord</h1>
@@ -336,11 +334,11 @@
         </div>
     </section>
 
-    @*SECTION 2 — CHART + RECENT MENTIONS *@
+    @* SECTION 2 — CHART + RECENT MENTIONS *@
     <section aria-label="Graphique et mentions récentes">
         <div class="bottom-grid">
 
-            @*  Chart.js — Séances par jour *@
+            @* Chart.js — Séances par jour *@
             <div class="chart-card">
                 <div class="chart-header">
                     <div>
@@ -399,7 +397,7 @@
         </div>
     </section>
 
-    @* SECTION 3 — ACTIVITÉ RAPIDE*@
+    @* SECTION 3 — ACTIVITÉ RAPIDE *@
     <section aria-label="Accès rapides">
         <div class="activity-strip">
 
@@ -424,7 +422,7 @@
                     <h4>Ajouter une mention</h4>
                     <p>Créer un nouveau parcours</p>
                 </div>
-                <a href="/Mention/Create" class="btn-icon-emit" style="margin-left:auto;" title="Créer une mention">
+                <a href="/Mentions/Create" class="btn-icon-emit" style="margin-left:auto;" title="Créer une mention">
                     <i class="bi bi-arrow-right"></i>
                 </a>
             </div>
@@ -453,7 +451,7 @@
 (function () {
     'use strict';
 
-    /*  Helpers */
+    /* Helpers */
     function esc(s) { return window._emitEscapeHtml ? window._emitEscapeHtml(String(s ?? '')) : String(s ?? ''); }
 
     function getNiveauClass(niveau) {
@@ -487,7 +485,7 @@
         </div>`;
     }
 
-    /* ── Affichage KPIs ── */
+    /* Affichage KPIs */
     function renderKpis(kpis) {
         const grid = document.getElementById('kpi-grid');
         if (!grid) return;
@@ -502,7 +500,7 @@
         grid.innerHTML = cards.join('');
     }
 
-    /* ── Affichage mentions récentes ── */
+    /* Affichage mentions récentes */
     function renderMentions(mentions) {
         const list    = document.getElementById('mentions-list');
         const skelEl  = document.getElementById('mentions-skeleton');
@@ -526,7 +524,7 @@
             const cls  = getNiveauClass(m.niveau);
             const icon = getNiveauIcon(m.niveau);
             return `
-            <a href="/Mention/Edit?id=${esc(m.id)}" class="recent-item" role="listitem"
+            <a href="/Mentions/Edit?id=${esc(m.id)}" class="recent-item" role="listitem"
                title="Modifier ${esc(m.nom)}">
                 <div class="recent-item-icon ${cls}" aria-hidden="true">
                     <i class="bi ${icon}"></i>
@@ -540,7 +538,7 @@
         }).join('');
     }
 
-    /* ── Chart.js ── */
+    /* Chart.js */
     let _chartInstance = null;
 
     function renderChart(seancesParJour) {
@@ -559,15 +557,12 @@
         if (totalEl) totalEl.textContent = total;
         if (badge)   badge.style.display = 'inline-flex';
 
-        /* Destruction de l'instance précédente si rafraîchi */
         if (_chartInstance) {
             _chartInstance.destroy();
             _chartInstance = null;
         }
 
         const ctx = canvas.getContext('2d');
-
-        /* Gradient vertical */
         const grad = ctx.createLinearGradient(0, 0, 0, 220);
         grad.addColorStop(0,   'rgba(115,185,230,0.85)');
         grad.addColorStop(1,   'rgba(115,185,230,0.25)');
@@ -590,43 +585,32 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                animation: {
-                    duration: 700,
-                    easing: 'easeOutQuart',
-                },
+                animation: { duration: 700, easing: 'easeOutQuart' },
                 layout: { padding: { top: 8, bottom: 0, left: 0, right: 0 } },
                 scales: {
                     x: {
-                        grid:   { display: false, drawBorder: false },
+                        grid: { display: false, drawBorder: false },
                         border: { display: false },
-                        ticks: {
-                            color: '#94A3B8',
-                            font: { family: "'DM Sans', sans-serif", size: 12, weight: '500' },
-                        },
+                        ticks: { color: '#94A3B8', font: { family: "'DM Sans', sans-serif", size: 12, weight: '500' } },
                     },
-                    y: {
-                        display: false,
-                        grid:    { display: false },
-                        border:  { display: false },
-                        beginAtZero: true,
-                    },
+                    y: { display: false, grid: { display: false }, border: { display: false }, beginAtZero: true },
                 },
                 plugins: {
                     legend: { display: false },
                     tooltip: {
                         backgroundColor: '#0F172A',
-                        borderColor:     'rgba(115,185,230,0.3)',
-                        borderWidth:     1,
-                        titleColor:      '#F5F7FA',
-                        bodyColor:       '#94A3B8',
-                        titleFont:       { family: "'DM Sans', sans-serif", size: 13, weight: '600' },
-                        bodyFont:        { family: "'DM Sans', sans-serif", size: 12 },
-                        padding:         12,
-                        cornerRadius:    8,
-                        displayColors:   false,
+                        borderColor: 'rgba(115,185,230,0.3)',
+                        borderWidth: 1,
+                        titleColor: '#F5F7FA',
+                        bodyColor: '#94A3B8',
+                        titleFont: { family: "'DM Sans', sans-serif", size: 13, weight: '600' },
+                        bodyFont: { family: "'DM Sans', sans-serif", size: 12 },
+                        padding: 12,
+                        cornerRadius: 8,
+                        displayColors: false,
                         callbacks: {
                             title: (items) => items[0]?.label || '',
-                            label: (item)  => `  ${item.raw} séance${item.raw > 1 ? 's' : ''}`,
+                            label: (item) => `  ${item.raw} séance${item.raw > 1 ? 's' : ''}`,
                         },
                     },
                 },
@@ -634,12 +618,13 @@
         });
     }
 
-    /* ── Chargement principal ── */
+    /* Chargement principal */
     async function loadDashboard() {
         const updateTimeEl = document.getElementById('update-time');
 
         try {
-            /* Chargements en parallèle */
+            if (!window.MockAPI) throw new Error('MockAPI non chargé');
+
             const [kpis, seancesParJour, mentions] = await Promise.all([
                 window.MockAPI.getKPIs(),
                 window.MockAPI.getSeancesParJour(),
@@ -654,8 +639,6 @@
 
         } catch (err) {
             window.handleApiError(err, 'Dashboard');
-
-            /* Affichage d'un état d'erreur partiel */
             const grid = document.getElementById('kpi-grid');
             if (grid && grid.querySelector('.kpi-skeleton')) {
                 grid.innerHTML = `
@@ -667,12 +650,11 @@
         }
     }
 
-    /* ── Bouton rafraîchir ── */
+    /* Bouton rafraîchir */
     function initRefreshBtn() {
         const btn = document.getElementById('btn-refresh');
         if (!btn) return;
         btn.addEventListener('click', () => {
-            /* Reset skeletons KPI */
             const grid = document.getElementById('kpi-grid');
             if (grid) {
                 grid.innerHTML = [1,2,3,4].map(i => `
@@ -682,13 +664,11 @@
                     <div class="skeleton skeleton-line w-40 h-10"></div>
                 </div>`).join('');
             }
-            /* Reset skeleton chart */
             const chartSkel = document.getElementById('chart-skeleton');
             const chartWrap = document.getElementById('chart-wrap');
             if (chartSkel) chartSkel.style.display = 'flex';
             if (chartWrap) chartWrap.style.display = 'none';
 
-            /* Reset skeleton mentions */
             const mList = document.getElementById('mentions-list');
             const mSkel = document.getElementById('mentions-skeleton');
             if (mList)  mList.style.display = 'none';
@@ -698,12 +678,10 @@
         });
     }
 
-    /* ── Init ── */
     document.addEventListener('DOMContentLoaded', () => {
         loadDashboard();
         initRefreshBtn();
     });
-
 })();
 </script>
 }

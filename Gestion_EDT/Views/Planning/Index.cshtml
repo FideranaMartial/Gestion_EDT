@@ -5,9 +5,7 @@
 
 <div class="planning-page">
 
-    <!-- ══════════════════════════════════════════════
-         En-tête de page
-    ═══════════════════════════════════════════════ -->
+    <!-- En-tête -->
     <div class="page-header-emit">
         <div class="page-header-left">
             <div class="page-icon-wrap">
@@ -19,253 +17,81 @@
             </div>
         </div>
         <div class="page-header-actions">
-            <button id="btnNewSeance" class="btn-emit-primary">
+            <!-- Correction du lien : /Seances/Create au lieu de /Seance/Create -->
+            <a id="btnNewSeance" href="/Seances/Create" class="btn-emit-primary">
                 <i class="bi bi-plus-lg me-2"></i>Nouvelle séance
-            </button>
+            </a>
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         Filtres en cascade
-    ═══════════════════════════════════════════════ -->
+    <!-- Filtres en cascade -->
     <div class="card-emit filter-card mb-4">
         <div class="filter-card-header">
             <i class="bi bi-funnel-fill me-2" style="color: var(--accent);"></i>
             <span>Filtrer l'affichage</span>
         </div>
         <div class="filter-grid">
-
-            <!-- Mention -->
             <div class="filter-group">
-                <label class="filter-label" for="filterMention">
-                    <i class="bi bi-bookmark-fill me-1"></i>Mention
-                </label>
-                <div class="select-wrapper">
-                    <select id="filterMention" class="emit-select">
-                        <option value="">Toutes les mentions</option>
-                    </select>
-                    <i class="bi bi-chevron-down select-arrow"></i>
-                </div>
+                <label class="filter-label" for="filterMention">Mention</label>
+                <select id="filterMention" class="emit-select">
+                    <option value="">Toutes les mentions</option>
+                </select>
             </div>
-
-            <!-- Parcours -->
             <div class="filter-group">
-                <label class="filter-label" for="filterParcours">
-                    <i class="bi bi-diagram-3-fill me-1"></i>Parcours
-                </label>
-                <div class="select-wrapper">
-                    <select id="filterParcours" class="emit-select" disabled>
-                        <option value="">Tous les parcours</option>
-                    </select>
-                    <i class="bi bi-chevron-down select-arrow"></i>
-                </div>
+                <label class="filter-label" for="filterParcours">Parcours</label>
+                <select id="filterParcours" class="emit-select" disabled>
+                    <option value="">Tous les parcours</option>
+                </select>
                 <span class="filter-hint" id="hintParcours">Sélectionnez une mention</span>
             </div>
-
-            <!-- Groupe -->
             <div class="filter-group">
-                <label class="filter-label" for="filterGroupe">
-                    <i class="bi bi-people-fill me-1"></i>Groupe
-                </label>
-                <div class="select-wrapper">
-                    <select id="filterGroupe" class="emit-select" disabled>
-                        <option value="">Tous les groupes</option>
-                    </select>
-                    <i class="bi bi-chevron-down select-arrow"></i>
-                </div>
+                <label class="filter-label" for="filterGroupe">Groupe</label>
+                <select id="filterGroupe" class="emit-select" disabled>
+                    <option value="">Tous les groupes</option>
+                </select>
                 <span class="filter-hint" id="hintGroupe">Sélectionnez un parcours</span>
             </div>
-
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         Légende rapide
-    ═══════════════════════════════════════════════ -->
+    <!-- Légende -->
     <div class="calendar-legend mb-3">
-        <div class="legend-item">
-            <span class="legend-dot" style="background:#73B9E6;"></span>
-            <span>Cours magistral</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-dot" style="background:#34D399;"></span>
-            <span>TD</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-dot" style="background:#FBBF24;"></span>
-            <span>TP</span>
-        </div>
-        <div class="legend-item">
-            <span class="legend-dot" style="background:#F87171;"></span>
-            <span>Examen</span>
-        </div>
+        <div class="legend-item"><span class="legend-dot" style="background:#73B9E6;"></span><span>Cours magistral</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#34D399;"></span><span>TD</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#FBBF24;"></span><span>TP</span></div>
+        <div class="legend-item"><span class="legend-dot" style="background:#F87171;"></span><span>Examen</span></div>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         Calendrier
-    ═══════════════════════════════════════════════ -->
+    <!-- Calendrier -->
     <div class="card-emit calendar-card">
         <div id="calendar"></div>
     </div>
-
 </div>
 
-<!-- Styles spécifiques à la vue Planning -->
 <style>
-    /* ── Page layout ── */
-    .planning-page {
-        padding: 1.5rem;
-    }
-
-    /* ── En-tête ── */
-    .page-header-emit {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 1.75rem;
-    }
-    .page-header-left {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-    .page-icon-wrap {
-        width: 52px;
-        height: 52px;
-        border-radius: var(--radius);
-        background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.4rem;
-        color: var(--bg-primary);
-        box-shadow: 0 4px 12px rgba(115,185,230,0.35);
-        flex-shrink: 0;
-    }
-    .page-title-emit {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        margin: 0;
-        line-height: 1.2;
-    }
-    .page-subtitle-emit {
-        font-size: 0.83rem;
-        color: var(--text-muted);
-        margin: 0;
-        margin-top: 2px;
-    }
-
-    /* ── Carte filtres ── */
-    .filter-card {
-        padding: 1.25rem 1.5rem;
-    }
-    .filter-card-header {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-    }
-    .filter-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem 1.5rem;
-    }
-    @@media (max-width: 768px) {
-        .filter-grid { grid-template-columns: 1fr; }
-    }
-    .filter-group {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .filter-label {
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .select-wrapper {
-        position: relative;
-    }
-    .emit-select {
-        width: 100%;
-        background: rgba(23,37,84,0.6);
-        border: 1px solid rgba(115,185,230,0.2);
-        border-radius: 8px;
-        color: var(--text-primary);
-        font-family: var(--font-main);
-        font-size: 0.88rem;
-        padding: 0.55rem 2.2rem 0.55rem 0.8rem;
-        appearance: none;
-        -webkit-appearance: none;
-        cursor: pointer;
-        transition: var(--transition);
-        outline: none;
-    }
-    .emit-select:focus {
-        border-color: var(--accent);
-        box-shadow: 0 0 0 3px rgba(115,185,230,0.15);
-    }
-    .emit-select:disabled {
-        opacity: 0.4;
-        cursor: not-allowed;
-    }
-    .emit-select option {
-        background: #1F4E79;
-        color: var(--text-primary);
-    }
-    .select-arrow {
-        position: absolute;
-        right: 0.7rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-muted);
-        font-size: 0.75rem;
-        pointer-events: none;
-    }
-    .filter-hint {
-        font-size: 0.73rem;
-        color: var(--text-muted);
-        font-style: italic;
-        min-height: 1em;
-    }
-
-    /* ── Légende ── */
-    .calendar-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.75rem 1.5rem;
-        padding: 0 0.25rem;
-    }
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-    .legend-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        flex-shrink: 0;
-    }
-
-    /* ── Carte calendrier ── */
-    .calendar-card {
-        padding: 1.25rem;
-        min-height: 600px;
-    }
-
-    /* ── Responsive header actions ── */
+    /* ===== Styles déjà présents dans votre fichier (inchangés) ===== */
+    .planning-page { padding: 1.5rem; }
+    .page-header-emit { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem; }
+    .page-header-left { display: flex; align-items: center; gap: 1rem; }
+    .page-icon-wrap { width: 52px; height: 52px; border-radius: var(--radius); background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; color: var(--bg-primary); box-shadow: 0 4px 12px rgba(115,185,230,0.35); flex-shrink: 0; }
+    .page-title-emit { font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0; line-height: 1.2; }
+    .page-subtitle-emit { font-size: 0.83rem; color: var(--text-muted); margin-top: 2px; }
+    .filter-card { padding: 1.25rem 1.5rem; }
+    .filter-card-header { font-size: 0.85rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem; display: flex; align-items: center; }
+    .filter-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem 1.5rem; }
+    @@media (max-width: 768px) { .filter-grid { grid-template-columns: 1fr; } }
+    .filter-group { display: flex; flex-direction: column; gap: 6px; }
+    .filter-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .select-wrapper { position: relative; }
+    .emit-select { width: 100%; background: rgba(23,37,84,0.6); border: 1px solid rgba(115,185,230,0.2); border-radius: 8px; color: var(--text-primary); font-family: var(--font-main); font-size: 0.88rem; padding: 0.55rem 2.2rem 0.55rem 0.8rem; appearance: none; cursor: pointer; transition: var(--transition); outline: none; }
+    .emit-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(115,185,230,0.15); }
+    .emit-select:disabled { opacity: 0.4; cursor: not-allowed; }
+    .emit-select option { background: #1F4E79; color: var(--text-primary); }
+    .filter-hint { font-size: 0.73rem; color: var(--text-muted); font-style: italic; min-height: 1em; }
+    .calendar-legend { display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; padding: 0 0.25rem; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .calendar-card { padding: 1.25rem; min-height: 600px; }
     @@media (max-width: 576px) {
         .page-header-emit { flex-direction: column; align-items: flex-start; }
         .page-header-actions { width: 100%; }
@@ -274,36 +100,151 @@
 </style>
 
 @section Scripts {
-    <!-- FullCalendar v6.1.10 via CDN -->
+    <!-- FullCalendar CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@@fullcalendar/core@6.1.10/locales/fr.global.min.js"></script>
-    <script src="~/js/timetable.js"></script>
 
     <script>
-        /* Met à jour les hints des selects en cascade */
-        document.addEventListener('DOMContentLoaded', function () {
-            const mentionSel = document.getElementById('filterMention');
-            const parcoursSel = document.getElementById('filterParcours');
+        (function() {
+            'use strict';
+
+            // Références DOM
+            const mentionSelect = document.getElementById('filterMention');
+            const parcoursSelect = document.getElementById('filterParcours');
+            const groupeSelect = document.getElementById('filterGroupe');
             const hintParcours = document.getElementById('hintParcours');
             const hintGroupe = document.getElementById('hintGroupe');
+            let calendar = null;
 
-            mentionSel.addEventListener('change', function () {
-                if (this.value) {
-                    hintParcours.textContent = '';
-                } else {
-                    hintParcours.textContent = 'Sélectionnez une mention';
+            // Charger les mentions
+            async function loadMentions() {
+                try {
+                    const mentions = await window.MockAPI.getMentions();
+                    mentionSelect.innerHTML = '<option value="">Toutes les mentions</option>';
+                    mentions.forEach(m => {
+                        const option = document.createElement('option');
+                        option.value = m.id;
+                        option.textContent = m.nom;
+                        mentionSelect.appendChild(option);
+                    });
+                } catch (err) {
+                    console.error(err);
+                    window.showToast('Erreur chargement mentions', 'error');
                 }
+            }
+
+            // Charger les parcours selon la mention sélectionnée
+            async function loadParcours(mentionId) {
+                parcoursSelect.disabled = !mentionId;
+                parcoursSelect.innerHTML = '<option value="">Tous les parcours</option>';
+                groupeSelect.disabled = true;
+                groupeSelect.innerHTML = '<option value="">Tous les groupes</option>';
                 hintGroupe.textContent = 'Sélectionnez un parcours';
-            });
 
-            parcoursSel.addEventListener('change', function () {
-                if (this.value) {
-                    hintGroupe.textContent = '';
-                } else {
-                    hintGroupe.textContent = 'Sélectionnez un parcours';
+                if (!mentionId) {
+                    hintParcours.textContent = 'Sélectionnez une mention';
+                    if (calendar) calendar.refetchEvents();
+                    return;
                 }
+                hintParcours.textContent = '';
+                try {
+                    const parcours = await window.MockAPI.getParcours(mentionId);
+                    parcours.forEach(p => {
+                        const option = document.createElement('option');
+                        option.value = p.id;
+                        option.textContent = p.nom;
+                        parcoursSelect.appendChild(option);
+                    });
+                    parcoursSelect.disabled = false;
+                } catch (err) {
+                    window.showToast('Impossible de charger les parcours', 'error');
+                    console.error(err);
+                }
+                if (calendar) calendar.refetchEvents();
+            }
+
+            // Charger les groupes selon le parcours sélectionné
+            async function loadGroupes(parcoursId) {
+                groupeSelect.disabled = !parcoursId;
+                groupeSelect.innerHTML = '<option value="">Tous les groupes</option>';
+                if (!parcoursId) {
+                    hintGroupe.textContent = 'Sélectionnez un parcours';
+                    if (calendar) calendar.refetchEvents();
+                    return;
+                }
+                hintGroupe.textContent = '';
+                try {
+                    const groupes = await window.MockAPI.getGroupes(parcoursId);
+                    groupes.forEach(g => {
+                        const option = document.createElement('option');
+                        option.value = g.id;
+                        option.textContent = g.nom;
+                        groupeSelect.appendChild(option);
+                    });
+                    groupeSelect.disabled = false;
+                } catch (err) {
+                    console.error(err);
+                }
+                if (calendar) calendar.refetchEvents();
+            }
+
+            // Initialisation du calendrier
+            function initCalendar() {
+                const calendarEl = document.getElementById('calendar');
+                if (!calendarEl) return;
+                calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'fr',
+                    initialView: 'timeGridWeek',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'timeGridWeek,timeGridDay'
+                    },
+                    slotMinTime: '07:30:00',
+                    slotMaxTime: '18:30:00',
+                    hiddenDays: [0], // dimanche
+                    events: async function(fetchInfo, successCallback, failureCallback) {
+                        const groupeId = groupeSelect.value;
+                        if (!groupeId) {
+                            successCallback([]);
+                            return;
+                        }
+                        try {
+                            const seances = await window.MockAPI.getSeances({ groupeId: parseInt(groupeId) });
+                            const events = seances.map(s => ({
+                                id: s.id,
+                                title: s.title,
+                                start: s.start,
+                                end: s.end,
+                                extendedProps: { salle: s.salle, professeur: s.professeur }
+                            }));
+                            successCallback(events);
+                        } catch (err) {
+                            console.error(err);
+                            failureCallback(err);
+                        }
+                    },
+                    eventClick: function(info) {
+                        alert(`${info.event.title}\nSalle : ${info.event.extendedProps.salle}\nEnseignant : ${info.event.extendedProps.professeur}`);
+                    }
+                });
+                calendar.render();
+            }
+
+            // Événements des filtres
+            function bindEvents() {
+                mentionSelect.addEventListener('change', () => loadParcours(mentionSelect.value));
+                parcoursSelect.addEventListener('change', () => loadGroupes(parcoursSelect.value));
+                groupeSelect.addEventListener('change', () => { if (calendar) calendar.refetchEvents(); });
+            }
+
+            // Initialisation
+            document.addEventListener('DOMContentLoaded', async () => {
+                await loadMentions();
+                initCalendar();
+                bindEvents();
             });
-        });
+        })();
     </script>
 }

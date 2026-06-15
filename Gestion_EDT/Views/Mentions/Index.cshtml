@@ -221,6 +221,7 @@
         display: none;
     }
 }
+
 </style>
 }
 
@@ -487,27 +488,44 @@
         if (!confirmed) return;
 
         try {
-            await window.fetchWithSpinner(btn, window.MockAPI.deleteMention(id));
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if (!token) throw new Error('Token CSRF manquant');
 
-            /* Retrait animé de la ligne */
-            const row = document.querySelector(`.mention-row[data-id="${id}"]`);
-            if (row) {
-                row.classList.add('deleting');
-                row.addEventListener('transitionend', () => {
-                    row.remove();
-                    /* Mise à jour du tableau local */
+            const response = await fetch(`/Mentions/Delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                }
+                // Pas de Content-Type, pas de body
+            });
+
+            if (response.ok) {
+                // Suppression réussie (le serveur a redirigé, mais on ignore la redirection)
+                // Retrait animé de la ligne
+                const row = document.querySelector(`.mention-row[data-id="${id}"]`);
+                if (row) {
+                    row.classList.add('deleting');
+                    row.addEventListener('transitionend', () => {
+                        row.remove();
+                        _allMentions = _allMentions.filter(m => m.id !== id);
+                        applyFilters();
+                    }, { once: true });
+                    setTimeout(() => {
+                        if (row.parentNode) {
+                            row.remove();
+                            _allMentions = _allMentions.filter(m => m.id !== id);
+                            applyFilters();
+                        }
+                    }, 400);
+                } else {
                     _allMentions = _allMentions.filter(m => m.id !== id);
                     applyFilters();
-                }, { once: true });
-                /* Fallback */
-                setTimeout(() => { if (row.parentNode) { row.remove(); _allMentions = _allMentions.filter(m => m.id !== id); applyFilters(); } }, 400);
+                }
+                window.showToast(`La mention "${nom}" a été supprimée.`, 'success', 'Suppression réussie');
             } else {
-                _allMentions = _allMentions.filter(m => m.id !== id);
-                applyFilters();
+                const text = await response.text();
+                throw new Error(text || 'Erreur serveur');
             }
-
-            window.showToast(`La mention "${nom}" a été supprimée.`, 'success', 'Suppression réussie');
-
         } catch (err) {
             window.handleApiError(err, 'deleteMention');
         }
@@ -552,7 +570,9 @@
     /* ── Chargement initial ── */
     async function loadMentions() {
         try {
-            const mentions = await window.MockAPI.getMentions();
+            const response = await fetch('/Mentions/GetMentionsJson');
+            if (!response.ok) throw { code: response.status, message: 'Impossible de charger les mentions' };
+            const mentions = await response.json();
             _allMentions   = mentions;
 
             /* Cache skeleton, affiche table */
