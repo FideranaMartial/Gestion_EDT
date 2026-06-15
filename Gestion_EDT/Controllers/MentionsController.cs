@@ -263,8 +263,18 @@ public async Task<IActionResult> DeleteAjax(int id)
         public async Task<IActionResult> GetMentionsJson()
         {
             var mentions = await _db.Mentions
+                .Include(m => m.Cycles)
                 .OrderBy(m => m.nom_mention)
-                .Select(m => new { m.Id, Nom = m.nom_mention, Niveau = "Non défini" }) // Le niveau n'est pas stocké dans Mention, on peut le déduire ou le laisser vide
+                .Select(m => new
+                {
+                    m.Id,
+                    Nom = m.nom_mention,
+                    // Déduire le niveau en fonction des cycles associés
+                    Niveau = m.Cycles.Any(c => c.niveau == "L") && m.Cycles.Any(c => c.niveau == "M") ? "Licence / Master"
+                        : m.Cycles.Any(c => c.niveau == "M") ? "Master"
+                        : m.Cycles.Any(c => c.niveau == "L") ? "Licence"
+                        : "Non défini"
+                })
                 .ToListAsync();
             return Json(mentions);
         }

@@ -1,4 +1,4 @@
-@* *@
+@* FICHIER : /Views/Mentions/Create.cshtml (CORRIGÉ) *@
 @{
     ViewData["Title"] = "Nouvelle Mention";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -15,7 +15,7 @@
     max-width: 980px;
 }
 
-/* ─── FORM CARD ─── */
+/* FORM CARD */
 .form-card {
     background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
     border: 1px solid rgba(115,185,230,0.12);
@@ -62,7 +62,7 @@
     padding: 28px;
 }
 
-/* ─── GRILLE FORMULAIRE ASYMÉTRIQUE ─── */
+/* GRILLE FORMULAIRE */
 .form-grid {
     display: grid;
     grid-template-columns: 1.6fr 1fr;
@@ -70,21 +70,16 @@
     gap: 20px 20px;
 }
 
-/* Nom occupe les 2 colonnes */
 .field-nom {
     grid-column: 1 / -1;
 }
-
-/* Niveau et code sur la même ligne */
 .field-niveau {
     grid-column: 1;
 }
-
 .field-code {
     grid-column: 2;
 }
 
-/* Footer boutons */
 .form-footer {
     grid-column: 1 / -1;
     display: flex;
@@ -95,7 +90,7 @@
     margin-top: 4px;
 }
 
-/* ─── PREVIEW CARD (colonne droite) ─── */
+/* PREVIEW CARD */
 .preview-card {
     background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
     border: 1px solid rgba(115,185,230,0.12);
@@ -166,7 +161,7 @@
     font-weight: 600;
 }
 
-/* ─── TIPS CARD ─── */
+/* TIPS CARD */
 .tips-card {
     margin-top: 16px;
     background: rgba(115,185,230,0.05);
@@ -211,7 +206,7 @@
     margin-top: 6px;
 }
 
-/* ─── INDICATEUR CARACTÈRES ─── */
+/* INDICATEUR CARACTÈRES */
 .char-counter {
     font-size: 11px;
     color: var(--text-muted);
@@ -219,11 +214,10 @@
     margin-top: 4px;
     transition: color 0.2s ease;
 }
-
 .char-counter.warn  { color: var(--warning); }
 .char-counter.limit { color: var(--danger); }
 
-/* ─── RESPONSIVE ─── */
+/* RESPONSIVE */
 @@media (max-width: 900px) {
     .create-root {
         grid-template-columns: 1fr;
@@ -245,168 +239,66 @@
 }
 
 <div class="animate-fadein">
-
-    @* ── Breadcrumb ── *@
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;font-size:13px;color:var(--text-muted);">
-        <a href="/Mentions" style="color:var(--text-muted);text-decoration:none;transition:var(--transition);"
-           onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-muted)'">
-            <i class="bi bi-mortarboard-fill" style="margin-right:4px;"></i>Mentions
-        </a>
-        <i class="bi bi-chevron-right" style="font-size:11px;"></i>
-        <span style="color:var(--text-primary);font-weight:500;">Nouvelle mention</span>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;">
+        <a href="/Mentions" class="btn-secondary-emit"><i class="bi bi-arrow-left"></i> Retour</a>
     </div>
-
     <div class="create-root">
-
-        @* COL 1 — FORMULAIRE *@
         <div class="form-card">
-
             <div class="form-card-header">
-                <div class="form-card-icon" aria-hidden="true">
-                    <i class="bi bi-plus-circle-fill"></i>
-                </div>
+                <div class="form-card-icon"><i class="bi bi-plus-circle-fill"></i></div>
                 <div>
                     <div class="form-card-title">Créer une nouvelle mention</div>
                     <div class="form-card-sub">Renseignez les informations de la filière universitaire</div>
                 </div>
             </div>
-
             <div class="form-card-body">
-                <form id="create-mention-form"
-                      data-emit-validate
-                      novalidate
-                      autocomplete="off"
-                      aria-label="Formulaire de création de mention">
-
+                <form id="create-mention-form" data-emit-validate novalidate autocomplete="off">
                     <div class="form-grid">
-
-                        @* ─── NOM ─── *@
                         <div class="form-group-emit field-nom">
-                            <label class="form-label-emit" for="nom">
-                                <i class="bi bi-fonts" aria-hidden="true" style="margin-right:5px;"></i>
-                                Nom de la mention
-                                <span style="color:var(--danger);margin-left:2px;" aria-hidden="true">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="nom"
-                                name="nom"
-                                class="form-control-emit"
-                                placeholder="ex. Informatique, Mathématiques…"
-                                data-validate="required alpha min-length"
-                                data-min-length="2"
-                                maxlength="100"
-                                required
-                                aria-required="true"
-                                aria-describedby="nom-feedback nom-counter" />
-                            <div style="display:flex;justify-content:space-between;align-items:center;min-height:18px;">
-                                <div class="form-feedback-emit" id="nom-feedback" data-feedback-for="#nom" role="alert" aria-live="polite"></div>
-                                <div class="char-counter" id="nom-counter" aria-hidden="true">0 / 100</div>
-                            </div>
+                            <label class="form-label-emit" for="nom">Nom de la mention *</label>
+                            <input type="text" id="nom" name="nom" class="form-control-emit" data-validate="required alpha min-length" data-min-length="2" maxlength="100" required />
+                            <div class="form-feedback-emit" id="nom-feedback"></div>
+                            <div class="char-counter" id="nom-counter">0 / 100</div>
                         </div>
-
-                        @* ─── NIVEAU ─── *@
                         <div class="form-group-emit field-niveau">
-                            <label class="form-label-emit" for="niveau">
-                                <i class="bi bi-bar-chart-steps" aria-hidden="true" style="margin-right:5px;"></i>
-                                Niveau d'études
-                                <span style="color:var(--danger);margin-left:2px;" aria-hidden="true">*</span>
-                            </label>
-                            <select
-                                id="niveau"
-                                name="niveau"
-                                class="form-control-emit"
-                                data-validate="required"
-                                required
-                                aria-required="true"
-                                aria-describedby="niveau-feedback">
+                            <label class="form-label-emit" for="niveau">Niveau d'études *</label>
+                            <select id="niveau" name="niveau" class="form-control-emit" data-validate="required" required>
                                 <option value="" disabled selected>— Choisir un niveau —</option>
                                 <option value="Licence">Licence</option>
                                 <option value="Master">Master</option>
                                 <option value="Doctorat">Doctorat</option>
                             </select>
-                            <div class="form-feedback-emit" id="niveau-feedback" data-feedback-for="#niveau" role="alert" aria-live="polite"></div>
+                            <div class="form-feedback-emit" id="niveau-feedback"></div>
                         </div>
-
-                        @* ─── CODE COURT ─── *@
                         <div class="form-group-emit field-code">
-                            <label class="form-label-emit" for="code">
-                                <i class="bi bi-hash" aria-hidden="true" style="margin-right:5px;"></i>
-                                Code court
-                                <span style="color:var(--text-muted);font-size:11px;margin-left:4px;">(optionnel)</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="code"
-                                name="code"
-                                class="form-control-emit"
-                                placeholder="ex. INFO, MATH…"
-                                data-validate="code"
-                                maxlength="6"
-                                style="text-transform:uppercase;"
-                                aria-describedby="code-feedback" />
-                            <div class="form-feedback-emit" id="code-feedback" data-feedback-for="#code" role="alert" aria-live="polite"></div>
+                            <label class="form-label-emit" for="code">Code court (optionnel)</label>
+                            <input type="text" id="code" name="code" class="form-control-emit" data-validate="code" maxlength="6" style="text-transform:uppercase;" />
+                            <div class="form-feedback-emit" id="code-feedback"></div>
                         </div>
-
-                        @* ─── FOOTER ─── *@
                         <div class="form-footer">
-                            <button
-                                type="submit"
-                                id="btn-submit"
-                                class="btn-primary-emit"
-                                aria-label="Enregistrer la nouvelle mention">
-                                <i class="bi bi-floppy-fill" aria-hidden="true"></i>
-                                Enregistrer
-                            </button>
-                            <a href="/Mentions"
-                               class="btn-secondary-emit"
-                               aria-label="Annuler et retourner à la liste">
-                                <i class="bi bi-x-lg" aria-hidden="true"></i>
-                                Annuler
-                            </a>
-                            <div id="submit-status" style="margin-left:auto;font-size:12px;color:var(--text-muted);" aria-live="polite"></div>
+                            <button type="submit" id="btn-submit" class="btn-primary-emit"><i class="bi bi-floppy-fill"></i> Enregistrer</button>
+                            <a href="/Mentions" class="btn-secondary-emit">Annuler</a>
+                            <div id="submit-status" style="margin-left:auto;font-size:12px;color:var(--text-muted);"></div>
                         </div>
-
                     </div>
                 </form>
             </div>
-
         </div>
-
-
-        @* COL 2 — APERÇU + TIPS *@
         <div>
-
-            @* Preview dynamique *@
             <div class="preview-card">
-                <div class="preview-title">
-                    <i class="bi bi-eye" style="margin-right:6px;color:var(--accent);"></i>
-                    Aperçu en direct
-                </div>
+                <div class="preview-title">Aperçu en direct</div>
                 <div class="preview-badge-wrap">
                     <div class="preview-mention-card" id="preview-card">
-                        <div class="preview-avatar default" id="preview-avatar" aria-hidden="true">
-                            <i class="bi bi-mortarboard"></i>
-                        </div>
+                        <div class="preview-avatar default" id="preview-avatar"><i class="bi bi-mortarboard"></i></div>
                         <div style="flex:1;min-width:0;">
-                            <div class="preview-info-nom" id="preview-nom"
-                                 style="color:var(--text-muted);font-style:italic;font-weight:400;">
-                                Nom de la mention…
-                            </div>
-                            <div id="preview-niveau-wrap" style="display:none;">
-                                <span class="preview-info-badge badge-niveau" id="preview-badge"></span>
-                            </div>
+                            <div class="preview-info-nom" id="preview-nom" style="color:var(--text-muted);font-style:italic;">Nom de la mention…</div>
+                            <div id="preview-niveau-wrap" style="display:none;"><span class="preview-info-badge badge-niveau" id="preview-badge"></span></div>
                         </div>
                     </div>
                 </div>
             </div>
-
-            @* Tips *@
             <div class="tips-card">
-                <div class="tips-title">
-                    <i class="bi bi-lightbulb-fill"></i>
-                    Conseils
-                </div>
+                <div class="tips-title"><i class="bi bi-lightbulb-fill"></i> Conseils</div>
                 <ul class="tips-list">
                     <li>Le nom doit correspondre à l'intitulé officiel de la filière.</li>
                     <li>Chaque combinaison Nom + Niveau doit être unique dans le système.</li>
@@ -414,11 +306,8 @@
                     <li>Une mention peut regrouper plusieurs parcours et groupes d'étudiants.</li>
                 </ul>
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @section Scripts {
@@ -426,22 +315,21 @@
 (function () {
     'use strict';
 
-    /* ── Helpers ── */
-    function esc(s) { return window._emitEscapeHtml ? window._emitEscapeHtml(String(s ?? '')) : String(s ?? ''); }
+    function escapeHtml(str) { return window._emitEscapeHtml ? window._emitEscapeHtml(str) : str; }
 
     function getNiveauClass(niveau) {
         if (!niveau) return 'default';
         const n = niveau.toLowerCase();
-        if (n === 'master')   return 'master';
+        if (n === 'master') return 'master';
         if (n === 'doctorat') return 'doctorat';
-        if (n === 'licence')  return 'licence';
+        if (n === 'licence') return 'licence';
         return 'default';
     }
 
     function getNiveauIcon(niveau) {
         if (!niveau) return 'bi-mortarboard';
         const n = niveau.toLowerCase();
-        if (n === 'master')   return 'bi-bookmark-star-fill';
+        if (n === 'master') return 'bi-bookmark-star-fill';
         if (n === 'doctorat') return 'bi-trophy-fill';
         return 'bi-bookmark-fill';
     }
@@ -453,165 +341,90 @@
         return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
     }
 
-    /* ── Aperçu dynamique ── */
     function updatePreview() {
-        const nom    = document.getElementById('nom')?.value || '';
+        const nom = document.getElementById('nom')?.value || '';
         const niveau = document.getElementById('niveau')?.value || '';
-
-        const avatarEl   = document.getElementById('preview-avatar');
-        const nomEl      = document.getElementById('preview-nom');
-        const badgeWrap  = document.getElementById('preview-niveau-wrap');
-        const badgeEl    = document.getElementById('preview-badge');
-
-        const cls     = getNiveauClass(niveau);
-        const icon    = getNiveauIcon(niveau);
+        const avatarEl = document.getElementById('preview-avatar');
+        const nomEl = document.getElementById('preview-nom');
+        const badgeWrap = document.getElementById('preview-niveau-wrap');
+        const badgeEl = document.getElementById('preview-badge');
+        const cls = getNiveauClass(niveau);
+        const icon = getNiveauIcon(niveau);
         const initials = getInitials(nom);
-
-        /* Avatar */
         if (avatarEl) {
             avatarEl.className = `preview-avatar ${cls}`;
-            if (initials) {
-                avatarEl.innerHTML = esc(initials);
-            } else {
-                avatarEl.innerHTML = `<i class="bi ${icon}" aria-hidden="true"></i>`;
-            }
+            avatarEl.innerHTML = initials ? escapeHtml(initials) : `<i class="bi ${icon}"></i>`;
         }
-
-        /* Nom */
-        if (nomEl) {
-            if (nom.trim()) {
-                nomEl.textContent = nom;
-                nomEl.style.color = 'var(--text-primary)';
-                nomEl.style.fontStyle = 'normal';
-                nomEl.style.fontWeight = '600';
-            } else {
-                nomEl.textContent = 'Nom de la mention…';
-                nomEl.style.color = 'var(--text-muted)';
-                nomEl.style.fontStyle = 'italic';
-                nomEl.style.fontWeight = '400';
-            }
-        }
-
-        /* Badge niveau */
+        if (nomEl) nomEl.textContent = nom.trim() || 'Nom de la mention…';
         if (badgeWrap && badgeEl) {
             if (niveau) {
                 badgeWrap.style.display = 'block';
                 badgeEl.className = `preview-info-badge badge-niveau ${cls}`;
-                badgeEl.innerHTML = `<i class="bi ${icon}" aria-hidden="true"></i>${esc(niveau)}`;
-            } else {
-                badgeWrap.style.display = 'none';
-            }
+                badgeEl.innerHTML = `<i class="bi ${icon}"></i> ${escapeHtml(niveau)}`;
+            } else badgeWrap.style.display = 'none';
         }
     }
 
-    /* ── Compteur de caractères ── */
-    function initCharCounter() {
-        const input   = document.getElementById('nom');
-        const counter = document.getElementById('nom-counter');
-        if (!input || !counter) return;
+    document.getElementById('nom').addEventListener('input', updatePreview);
+    document.getElementById('niveau').addEventListener('change', updatePreview);
 
-        const MAX = 100;
-
-        function update() {
-            const len = input.value.length;
-            counter.textContent = `${len} / ${MAX}`;
-            counter.className = 'char-counter';
-            if (len > MAX * 0.85) counter.classList.add('warn');
-            if (len >= MAX)       counter.classList.add('limit');
-        }
-
-        input.addEventListener('input', update);
-        update();
-    }
-
-    /* ── Majuscule automatique du code ── */
-    function initCodeField() {
-        const codeInput = document.getElementById('code');
-        if (!codeInput) return;
-        codeInput.addEventListener('input', () => {
-            const pos = codeInput.selectionStart;
-            codeInput.value = codeInput.value.toUpperCase();
-            codeInput.setSelectionRange(pos, pos);
-        });
-    }
-
-    /* ── Soumission formulaire ── */
-    function initForm() {
-        const form    = document.getElementById('create-mention-form');
-        const btnSub  = document.getElementById('btn-submit');
-        const statusEl = document.getElementById('submit-status');
-
-        if (!form || !btnSub) return;
-
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            /* Validation complète */
-            const validation = window.ValidationEngine.validateForm(form);
-            if (!validation.valid) {
-                window.showToast(
-                    `Veuillez corriger ${validation.errors.length} erreur(s) avant de soumettre.`,
-                    'warning',
-                    'Formulaire invalide'
-                );
-                return;
-            }
-
-            const nom    = document.getElementById('nom').value.trim();
-            const niveau = document.getElementById('niveau').value.trim();
-            const code   = (document.getElementById('code')?.value || '').trim() || undefined;
-
-            if (statusEl) statusEl.textContent = '';
-
-            try {
-                        const result = await window.API.createMention({ nom, niveau, code });
-
-                window.showToast(
-                    `La mention "${result.nom}" (${result.niveau}) a été créée avec succès.`,
-                    'success',
-                    'Mention créée'
-                );
-
-                /* Réinitialiser le formulaire visuellement */
-                form.reset();
-                window.ValidationEngine.resetForm(form);
-                updatePreview();
-
-                /* Redirect après 800ms */
-                if (statusEl) {
-                    statusEl.innerHTML = `<i class="bi bi-hourglass-split" style="margin-right:4px;"></i>Redirection en cours…`;
-                }
-                setTimeout(() => {
-                    window.location.href = '/Mentions?created=1';
-                }, 800);
-
-            } catch (err) {
-                window.handleApiError(err, 'createMention');
-                if (statusEl) statusEl.textContent = '';
-            }
-        });
-    }
-
-    /* ── Listeners aperçu ── */
-    function initPreviewListeners() {
-        ['nom', 'niveau'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                el.addEventListener('input',  updatePreview);
-                el.addEventListener('change', updatePreview);
-            }
-        });
-    }
-
-    /* ── Init ── */
-    document.addEventListener('DOMContentLoaded', () => {
-        initCharCounter();
-        initCodeField();
-        initPreviewListeners();
-        initForm();
-        updatePreview();
+    const counter = document.getElementById('nom-counter');
+    document.getElementById('nom').addEventListener('input', () => {
+        const len = document.getElementById('nom').value.length;
+        counter.textContent = `${len} / 100`;
+        if (len > 85) counter.classList.add('warn');
+        else counter.classList.remove('warn');
     });
 
+    const form = document.getElementById('create-mention-form');
+    const btnSub = document.getElementById('btn-submit');
+    const statusEl = document.getElementById('submit-status');
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        if (window.ValidationEngine && !window.ValidationEngine.validateForm(form).valid) {
+            window.showToast('Corrigez les erreurs', 'warning');
+            return;
+        }
+
+        const nom = document.getElementById('nom').value.trim();
+        const code = document.getElementById('code').value.trim() || undefined;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        statusEl.textContent = '';
+
+        try {
+            btnSub.disabled = true;
+            btnSub.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Envoi...';
+
+            const formData = new URLSearchParams();
+            formData.append('nom_mention', nom);
+            formData.append('code_mention', code);
+
+            const response = await fetch('/Mentions/Create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                body: formData.toString()
+            });
+
+            if (response.ok) {
+                window.showToast('Mention créée avec succès', 'success');
+                statusEl.innerHTML = 'Redirection...';
+                setTimeout(() => { window.location.href = '/Mentions?created=1'; }, 800);
+            } else {
+                const text = await response.text();
+                throw new Error(text || 'Erreur serveur');
+            }
+        } catch (err) {
+            window.handleApiError(err, 'createMention');
+        } finally {
+            btnSub.disabled = false;
+            btnSub.innerHTML = '<i class="bi bi-floppy-fill"></i> Enregistrer';
+        }
+    });
+
+    updatePreview();
 })();
 </script>
 }
