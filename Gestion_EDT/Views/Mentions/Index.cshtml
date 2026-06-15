@@ -221,6 +221,7 @@
         display: none;
     }
 }
+
 </style>
 }
 
@@ -466,57 +467,69 @@
         renderTable(result);
     }
 
-            /* ── Suppression ── */
-        async function handleDelete(btn) {
-            const id  = parseInt(btn.dataset.id, 10);
-            const nom = btn.dataset.nom || 'cette mention';
+    /* ── Suppression ── */
+    async function handleDelete(btn) {
+        const id  = parseInt(btn.dataset.id, 10);
+        const nom = btn.dataset.nom || 'cette mention';
 
-            const confirmed = await window.showConfirmModal({
-                title:        'Supprimer la mention',
-                message:      `Voulez-vous vraiment supprimer la mention <strong>"${escapeHtml(nom)}"</strong> ?<br>
-                               <small style="color:var(--warning);margin-top:8px;display:block;">
-                                   <i class="bi bi-exclamation-triangle-fill" style="margin-right:4px;"></i>
-                                   Cette action est irréversible.
-                               </small>`,
-                confirmText:  'Supprimer',
-                cancelText:   'Annuler',
-                confirmClass: 'btn-danger-emit',
-                icon:         'bi-trash3-fill',
+        const confirmed = await window.showConfirmModal({
+            title:        'Supprimer la mention',
+            message:      `Voulez-vous vraiment supprimer la mention <strong>"${esc(nom)}"</strong> ?<br>
+                           <small style="color:var(--warning);margin-top:8px;display:block;">
+                               <i class="bi bi-exclamation-triangle-fill" style="margin-right:4px;"></i>
+                               Cette action est irréversible. Les parcours associés seront affectés.
+                           </small>`,
+            confirmText:  'Supprimer',
+            cancelText:   'Annuler',
+            confirmClass: 'btn-danger-emit',
+            icon:         'bi-trash3-fill',
+        });
+
+        if (!confirmed) return;
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            if (!token) throw new Error('Token CSRF manquant');
+
+            const response = await fetch(`/Mentions/Delete/${id}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': token
+                }
+                // Pas de Content-Type, pas de body
             });
 
-            if (!confirmed) return;
-
-            try {
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
-
-                const result = await window.API.deleteMention(id);
-
-                if (result.success) {
-                    window.showToast(result.message || `La mention "${nom}" a été supprimée.`, 'success');
-
-                    const row = document.querySelector(`.mention-row[data-id="${id}"]`);
-                    if (row) {
-                        row.classList.add('deleting');
-                        setTimeout(() => {
-                            _allMentions = _allMentions.filter(m => m.id !== id);
-                            applyFilters();
-                        }, 300);
-                    } else {
+            if (response.ok) {
+                // Suppression réussie (le serveur a redirigé, mais on ignore la redirection)
+                // Retrait animé de la ligne
+                const row = document.querySelector(`.mention-row[data-id="${id}"]`);
+                if (row) {
+                    row.classList.add('deleting');
+                    row.addEventListener('transitionend', () => {
+                        row.remove();
                         _allMentions = _allMentions.filter(m => m.id !== id);
                         applyFilters();
-                    }
+                    }, { once: true });
+                    setTimeout(() => {
+                        if (row.parentNode) {
+                            row.remove();
+                            _allMentions = _allMentions.filter(m => m.id !== id);
+                            applyFilters();
+                        }
+                    }, 400);
                 } else {
-                    window.showToast(result.message || 'Erreur lors de la suppression', 'error');
+                    _allMentions = _allMentions.filter(m => m.id !== id);
+                    applyFilters();
                 }
-            } catch (err) {
-                window.showToast('Erreur lors de la suppression', 'error');
-                console.error(err);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-trash3-fill" aria-hidden="true"></i>';
+                window.showToast(`La mention "${nom}" a été supprimée.`, 'success', 'Suppression réussie');
+            } else {
+                const text = await response.text();
+                throw new Error(text || 'Erreur serveur');
             }
+        } catch (err) {
+            window.handleApiError(err, 'deleteMention');
         }
+    }
 
     /* ── Délégation des clics de suppression ── */
     function initDeleteDelegation() {
@@ -557,7 +570,9 @@
     /* ── Chargement initial ── */
     async function loadMentions() {
         try {
-            const mentions = await window.API.getMentions();
+            const response = await fetch('/Mentions/GetMentionsJson');
+            if (!response.ok) throw { code: response.status, message: 'Impossible de charger les mentions' };
+            const mentions = await response.json();
             _allMentions   = mentions;
 
             /* Cache skeleton, affiche table */
