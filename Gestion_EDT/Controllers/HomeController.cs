@@ -61,41 +61,56 @@ namespace Gestion_EDT.Controllers
         }
 
         // ── GET /Home/GetKPIs ──────────────────────────────────────
-        [HttpGet]
-        public async Task<IActionResult> GetKPIs()
+[HttpGet]
+public async Task<IActionResult> GetKPIs()
+{
+    try
+    {
+        var totalMentions = await _db.Mentions.CountAsync();
+        var seancesSemaine = await _db.Seances.CountAsync(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today));
+        var heuresEnseignees = await _db.Seances
+            .Where(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today))
+            .SumAsync(s => (s.heure_fin - s.heure_debut).TotalHours);
+
+        var kpis = new
         {
-            var kpis = new
-            {
-                totalMentions = await _db.Mentions.CountAsync(),
-                totalEnseignants = await _db.Enseignants.CountAsync(),
-                totalGroupes = await _db.Groupes.CountAsync(),
-                totalSalles = await _db.Salles.CountAsync(),
-                totalMatieres = await _db.Matieres.CountAsync(),
-                seancesSemaine = await _db.Seances.CountAsync(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today)),
-                heuresEnseignees = await _db.Seances
-                    .Where(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today))
-                    .SumAsync(s => (s.heure_fin - s.heure_debut).TotalHours)
-            };
-            return Json(kpis);
-        }
+            totalMentions = totalMentions,
+            seancesSemaine = seancesSemaine,
+            tauxOccupation = 78, // valeur temporaire
+            heuresEnseignees = Math.Round(heuresEnseignees, 1)
+        };
+        return Json(kpis);
+    }
+    catch (Exception ex)
+    {
+        // Logguer l'erreur (vous verrez dans la console)
+        System.Diagnostics.Debug.WriteLine($"Erreur dans GetKPIs: {ex.Message}");
+        return Json(new { error = ex.Message, totalMentions = 0, seancesSemaine = 0, tauxOccupation = 0, heuresEnseignees = 0 });
+    }
+}
 
-        // ── GET /Home/GetSeancesParJour ────────────────────────────
-        [HttpGet]
-        public async Task<IActionResult> GetSeancesParJour()
+// ── GET /Home/GetSeancesParJour ────────────────────────────
+[HttpGet]
+public async Task<IActionResult> GetSeancesParJour()
+{
+    try
+    {
+        var jours = new[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
+        var data = new int[5];
+        for (int i = 0; i < 5; i++)
         {
-            var jours = new[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
-            var data = new int[5];
-
-            for (int i = 0; i < 5; i++)
-            {
-                // Lundi = 1, Mardi = 2, etc.
-                int jourSemaine = i + 1;
-                data[i] = await _db.Seances
-                    .Where(s => ((int)s.date_seance.DayOfWeek + 6) % 7 + 1 == jourSemaine)
-                    .CountAsync();
-            }
-
-            return Json(new { labels = jours, data = data });
+            int jourSemaine = i + 1; // Lundi = 1, Mardi = 2, ...
+            data[i] = await _db.Seances
+                .Where(s => ((int)s.date_seance.DayOfWeek + 6) % 7 + 1 == jourSemaine)
+                .CountAsync();
         }
+        return Json(new { labels = jours, data = data });
+    }
+    catch (Exception ex)
+    {
+        // En cas d'erreur, renvoyer des données vides (évite la casse du dashboard)
+        return Json(new { labels = new[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" }, data = new int[5] });
+    }
+}
     }
 }
