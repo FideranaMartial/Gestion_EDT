@@ -38,7 +38,7 @@ namespace Gestion_EDT.Controllers
             ViewData["Search"] = search;
 
             if (TempData["Success"] != null) ViewData["Success"] = TempData["Success"];
-            if (TempData["Error"]   != null) ViewData["Error"]   = TempData["Error"];
+            if (TempData["Error"] != null) ViewData["Error"] = TempData["Error"];
 
             return View(liste);
         }
@@ -67,7 +67,7 @@ namespace Gestion_EDT.Controllers
                 .Sum(s => (s.heure_fin - s.heure_debut).TotalHours);
 
             ViewData["TotalHeuresSemaine"] = Math.Round(totalHeures, 1);
-            ViewData["SemaineCourante"]    = semaineCourante;
+            ViewData["SemaineCourante"] = semaineCourante;
 
             return View(enseignant);
         }
@@ -182,10 +182,10 @@ namespace Gestion_EDT.Controllers
                 .OrderBy(e => e.nom_enseignant)
                 .Select(e => new
                 {
-                    id     = e.Id,
-                    nom    = e.nom_enseignant,
+                    id = e.Id,
+                    nom = e.nom_enseignant,
                     prenom = e.prenom_enseignant,
-                    grade  = e.grade
+                    grade = e.grade
                 })
                 .ToListAsync();
 
@@ -210,17 +210,141 @@ namespace Gestion_EDT.Controllers
                 .Select(s => new
                 {
                     s.Id,
-                    date       = s.date_seance.ToString("yyyy-MM-dd"),
+                    date = s.date_seance.ToString("yyyy-MM-dd"),
                     heureDebut = s.heure_debut.ToString(@"hh\:mm"),
-                    heureFin   = s.heure_fin.ToString(@"hh\:mm"),
-                    matiere    = s.Matiere!.intitule,
-                    salle      = s.Salle!.num_salle,
-                    groupe     = s.Groupe!.nom_groupe,
+                    heureFin = s.heure_fin.ToString(@"hh\:mm"),
+                    matiere = s.Matiere!.intitule,
+                    salle = s.Salle!.num_salle,
+                    groupe = s.Groupe!.nom_groupe,
                     s.semaine
                 })
                 .ToListAsync();
 
             return Json(seances);
+        }
+
+        // ── GET /Enseignants/GetOne/{id} ─────────────────────────────
+        // API JSON — charge un enseignant pour le modal d'édition
+        [HttpGet]
+        public async Task<IActionResult> GetOne(int id)
+        {
+            var e = await _db.Enseignants.FindAsync(id);
+            if (e == null)
+                return Json(new { success = false, message = "Enseignant non trouvé." });
+
+            return Json(new
+            {
+                success = true,
+                data = new
+                {
+                    id = e.Id,
+                    matricule = e.matricule,
+                    nom = e.nom_enseignant,
+                    prenom = e.prenom_enseignant,
+                    grade = e.grade
+                }
+            });
+        }
+
+        // ── POST /Enseignants/CreateAjax ─────────────────────────────
+        // Création via le modal (Index.cshtml)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAjax([FromBody] Enseignant enseignant)
+        {
+            if (!ModelState.IsValid)
+            {
+                var erreurs = ModelState
+                    .Where(kv => kv.Value!.Errors.Count > 0)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value!.Errors.First().ErrorMessage);
+                return Json(new { success = false, message = "Champs invalides.", erreurs });
+            }
+
+            // RG13 — unicité du matricule
+            bool existe = await _db.Enseignants
+                .AnyAsync(e => e.matricule == enseignant.matricule);
+            if (existe)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Ce matricule est déjà utilisé. (RG13)",
+                    erreurs = new { matricule = "Ce matricule est déjà utilisé." }
+                });
+            }
+
+            _db.Enseignants.Add(enseignant);
+            await _db.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"Enseignant {enseignant.prenom_enseignant} {enseignant.nom_enseignant} créé.",
+                data = new
+                {
+                    id = enseignant.Id,
+                    matricule = enseignant.matricule,
+                    nom = enseignant.nom_enseignant,
+                    prenom = enseignant.prenom_enseignant,
+                    grade = enseignant.grade
+                }
+            });
+        }
+
+        // ── POST /Enseignants/EditAjax/{id} ──────────────────────────
+        // Modification via le modal (Index.cshtml)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAjax(int id, Enseignant enseignant)
+        {
+            if (id != enseignant.Id)
+                return Json(new { success = false, message = "Identifiant incohérent." });
+
+            if (!ModelState.IsValid)
+            {
+                var erreurs = ModelState
+                    .Where(kv => kv.Value!.Errors.Count > 0)
+                    .ToDictionary(kv => kv.Key, kv => kv.Value!.Errors.First().ErrorMessage);
+                return Json(new { success = false, message = "Champs invalides.", erreurs });
+            }
+
+            // RG13 — unicité du matricule (hors lui-même)
+            bool existe = await _db.Enseignants
+                .AnyAsync(e => e.matricule == enseignant.matricule && e.Id != id);
+            if (existe)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Ce matricule est déjà utilisé. (RG13)",
+                    erreurs = new { matricule = "Ce matricule est déjà utilisé." }
+                });
+            }
+
+            var e = await _db.Enseignants.FindAsync(id);
+            if (e == null)
+                return Json(new { success = false, message = "Enseignant non trouvé." });
+
+            e.matricule = enseignant.matricule;
+            e.nom_enseignant = enseignant.nom_enseignant;
+            e.prenom_enseignant = enseignant.prenom_enseignant;
+            e.grade = enseignant.grade;
+
+            await _db.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"Enseignant {e.prenom_enseignant} {e.nom_enseignant} mis à jour.",
+                data = new
+                {
+                    id = e.Id,
+                    matricule = e.matricule,
+                    nom = e.nom_enseignant,
+                    prenom = e.prenom_enseignant,
+                    grade = e.grade
+                }
+            });
         }
 
         // ── POST /Enseignants/DeleteAjax/{id} ────────────────────────────

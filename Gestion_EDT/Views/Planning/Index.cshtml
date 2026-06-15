@@ -109,7 +109,6 @@
         (function() {
             'use strict';
 
-            // Références DOM
             const mentionSelect = document.getElementById('filterMention');
             const parcoursSelect = document.getElementById('filterParcours');
             const groupeSelect = document.getElementById('filterGroupe');
@@ -117,10 +116,9 @@
             const hintGroupe = document.getElementById('hintGroupe');
             let calendar = null;
 
-            // Charger les mentions
             async function loadMentions() {
                 try {
-                    const mentions = await window.MockAPI.getMentions();
+                    const mentions = await window.API.getMentions();
                     mentionSelect.innerHTML = '<option value="">Toutes les mentions</option>';
                     mentions.forEach(m => {
                         const option = document.createElement('option');
@@ -134,7 +132,6 @@
                 }
             }
 
-            // Charger les parcours selon la mention sélectionnée
             async function loadParcours(mentionId) {
                 parcoursSelect.disabled = !mentionId;
                 parcoursSelect.innerHTML = '<option value="">Tous les parcours</option>';
@@ -149,11 +146,11 @@
                 }
                 hintParcours.textContent = '';
                 try {
-                    const parcours = await window.MockAPI.getParcours(mentionId);
+                    const parcours = await window.API.getParcours(mentionId);
                     parcours.forEach(p => {
                         const option = document.createElement('option');
-                        option.value = p.id;
-                        option.textContent = p.nom;
+                        option.value = p.value;
+                        option.textContent = p.label;
                         parcoursSelect.appendChild(option);
                     });
                     parcoursSelect.disabled = false;
@@ -164,7 +161,6 @@
                 if (calendar) calendar.refetchEvents();
             }
 
-            // Charger les groupes selon le parcours sélectionné
             async function loadGroupes(parcoursId) {
                 groupeSelect.disabled = !parcoursId;
                 groupeSelect.innerHTML = '<option value="">Tous les groupes</option>';
@@ -175,11 +171,11 @@
                 }
                 hintGroupe.textContent = '';
                 try {
-                    const groupes = await window.MockAPI.getGroupes(parcoursId);
+                    const groupes = await window.API.getGroupes(parcoursId);
                     groupes.forEach(g => {
                         const option = document.createElement('option');
-                        option.value = g.id;
-                        option.textContent = g.nom;
+                        option.value = g.value;
+                        option.textContent = g.label;
                         groupeSelect.appendChild(option);
                     });
                     groupeSelect.disabled = false;
@@ -189,7 +185,6 @@
                 if (calendar) calendar.refetchEvents();
             }
 
-            // Initialisation du calendrier
             function initCalendar() {
                 const calendarEl = document.getElementById('calendar');
                 if (!calendarEl) return;
@@ -203,7 +198,7 @@
                     },
                     slotMinTime: '07:30:00',
                     slotMaxTime: '18:30:00',
-                    hiddenDays: [0], // dimanche
+                    hiddenDays: [0],
                     events: async function(fetchInfo, successCallback, failureCallback) {
                         const groupeId = groupeSelect.value;
                         if (!groupeId) {
@@ -211,7 +206,7 @@
                             return;
                         }
                         try {
-                            const seances = await window.MockAPI.getSeances({ groupeId: parseInt(groupeId) });
+                            const seances = await window.API.getSeances({ groupeId: parseInt(groupeId) });
                             const events = seances.map(s => ({
                                 id: s.id,
                                 title: s.title,
@@ -232,14 +227,12 @@
                 calendar.render();
             }
 
-            // Événements des filtres
             function bindEvents() {
                 mentionSelect.addEventListener('change', () => loadParcours(mentionSelect.value));
                 parcoursSelect.addEventListener('change', () => loadGroupes(parcoursSelect.value));
                 groupeSelect.addEventListener('change', () => { if (calendar) calendar.refetchEvents(); });
             }
 
-            // Initialisation
             document.addEventListener('DOMContentLoaded', async () => {
                 await loadMentions();
                 initCalendar();
