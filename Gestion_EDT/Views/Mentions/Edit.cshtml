@@ -701,75 +701,72 @@
         });
     }
 
-    /* ── Soumission formulaire ── */
-    function initForm() {
-        const form     = document.getElementById('edit-mention-form');
-        const btnSub   = document.getElementById('btn-submit');
-        const statusEl = document.getElementById('submit-status');
+            /* ── Soumission formulaire ── */
+        function initForm() {
+            const form     = document.getElementById('edit-mention-form');
+            const btnSub   = document.getElementById('btn-submit');
+            const statusEl = document.getElementById('submit-status');
 
-        if (!form || !btnSub) return;
+            if (!form || !btnSub) return;
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
 
-            /* Validation complète */
-            const validation = window.ValidationEngine.validateForm(form);
-            if (!validation.valid) {
-                window.showToast(
-                    `Veuillez corriger ${validation.errors.length} erreur(s) avant de sauvegarder.`,
-                    'warning',
-                    'Formulaire invalide'
-                );
-                return;
-            }
+                const validation = window.ValidationEngine.validateForm(form);
+                if (!validation.valid) {
+                    window.showToast(
+                        `Veuillez corriger ${validation.errors.length} erreur(s) avant de sauvegarder.`,
+                        'warning',
+                        'Formulaire invalide'
+                    );
+                    return;
+                }
 
-            /* Vérification si des changements existent */
-            if (!_hasChanges) {
-                window.showToast('Aucune modification détectée.', 'info', 'Sans changement');
-                return;
-            }
+                if (!_hasChanges) {
+                    window.showToast('Aucune modification détectée.', 'info', 'Sans changement');
+                    return;
+                }
 
-            const nom    = document.getElementById('nom').value.trim();
-            const niveau = document.getElementById('niveau').value.trim();
-            const code   = (document.getElementById('code')?.value || '').trim().toUpperCase() || undefined;
+                const nom    = document.getElementById('nom').value.trim();
+                const niveau = document.getElementById('niveau').value.trim();
+                const code   = (document.getElementById('code')?.value || '').trim().toUpperCase() || undefined;
 
-            if (statusEl) statusEl.textContent = '';
-
-            try {
-                const result = await window.fetchWithSpinner(
-                    btnSub,
-                    window.MockAPI.updateMention(resolvedId, { nom, niveau, code })
-                );
-
-                window.showToast(
-                    `La mention "${result.nom}" a été mise à jour avec succès.`,
-                    'success',
-                    'Modification réussie'
-                );
-
-                /* Mise à jour des valeurs originales (plus de "changes") */
-                _originalData = { nom: result.nom, niveau: result.niveau, code: result.code || '' };
-                _hasChanges   = false;
-                checkChanges();
-
-                /* Mise à jour du breadcrumb et sous-titre */
-                const breadEl = document.getElementById('breadcrumb-nom');
-                if (breadEl) breadEl.textContent = result.nom;
-                const subEl = document.getElementById('form-card-sub');
-                if (subEl) subEl.textContent = `Modification de "${result.nom}"`;
-
-                /* Redirect après 800ms */
-                if (statusEl) statusEl.innerHTML = `<i class="bi bi-hourglass-split" style="margin-right:4px;"></i>Redirection…`;
-                setTimeout(() => {
-                    window.location.href = '/Mention?updated=1';
-                }, 800);
-
-            } catch (err) {
-                window.handleApiError(err, 'updateMention');
                 if (statusEl) statusEl.textContent = '';
-            }
-        });
-    }
+
+                try {
+                    btnSub.disabled = true;
+                    btnSub.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Sauvegarde...';
+
+                    const result = await window.API.updateMention(resolvedId, { nom, niveau, code });
+
+                    if (result.success) {
+                        window.showToast(result.message || 'Mention mise à jour avec succès.', 'success');
+
+                        _originalData = { nom: result.mention?.nom || nom, niveau: niveau, code: result.mention?.code || '' };
+                        _hasChanges = false;
+                        checkChanges();
+
+                        const breadEl = document.getElementById('breadcrumb-nom');
+                        if (breadEl) breadEl.textContent = result.mention?.nom || nom;
+                        const subEl = document.getElementById('form-card-sub');
+                        if (subEl) subEl.textContent = `Modification de "${result.mention?.nom || nom}"`;
+
+                        setTimeout(() => {
+                            window.location.href = '/Mentions?updated=1';
+                        }, 800);
+                    } else {
+                        window.showToast(result.message || 'Erreur lors de la mise à jour', 'error');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    window.showToast('Erreur lors de la sauvegarde', 'error');
+                } finally {
+                    btnSub.disabled = false;
+                    btnSub.innerHTML = '<i class="bi bi-floppy-fill" aria-hidden="true"></i>\n                                Sauvegarder';
+                    if (statusEl) statusEl.textContent = '';
+                }
+            });
+        }
 
     /* ── Chargement de la mention à modifier ── */
     async function loadMention() {
@@ -791,8 +788,8 @@
 
         try {
             /* On récupère toutes les mentions et on filtre par id */
-            const allMentions = await window.MockAPI.getMentions();
-            const mention     = allMentions.find(m => m.id === resolvedId);
+                    const allMentions = await window.API.getMentions();
+        const mention = allMentions.find(m => m.id === resolvedId);
 
             if (!mention) {
                 throw { code: 404, message: `La mention #${resolvedId} est introuvable.` };

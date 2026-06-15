@@ -416,31 +416,6 @@
      DÉCONNEXION
      ════════════════════════════════════════ */
 
-  function initLogout() {
-    const logoutBtn = document.getElementById('logout-btn');
-    if (!logoutBtn) return;
-
-    logoutBtn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      const confirmed = await window.showConfirmModal({
-        title:       'Déconnexion',
-        message:     'Vous êtes sur le point de vous déconnecter. Toutes les modifications non sauvegardées seront perdues.',
-        confirmText: 'Se déconnecter',
-        cancelText:  'Rester connecté',
-        confirmClass: 'btn-danger-emit',
-        icon:         'bi-box-arrow-right',
-      });
-      if (confirmed) {
-        const href = logoutBtn.getAttribute('href') || logoutBtn.dataset.href;
-        if (href && href !== '#') {
-          window.location.href = href;
-        } else {
-          window.showToast('Déconnexion simulée (mock).', 'info');
-        }
-      }
-    });
-  }
-
 
   /* ════════════════════════════════════════
      UTILITAIRES PUBLICS

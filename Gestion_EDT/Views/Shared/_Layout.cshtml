@@ -2,10 +2,10 @@
    FICHIER : /Views/Shared/_Layout.cshtml
    Application : EMIT — Gestion Emploi du Temps
    ═══════════════════════════════════════ *@
+@using System.Security.Claims
 <!DOCTYPE html>
 <html lang="fr" data-bs-theme="dark">
 <head>
-
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="EMIT — Application de gestion des emplois du temps universitaires" />
@@ -115,15 +115,39 @@
                     <span class="nav-link-label">Enseignants</span>
                 </a>
 
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="sidebar-section-label">Administration</div>
+                    <a class="nav-link"
+                       href="/Account/Index"
+                       data-path="/account"
+                       role="listitem"
+                       title="Gestion des comptes">
+                        <i class="bi bi-shield-lock-fill" aria-hidden="true"></i>
+                        <span class="nav-link-label">Comptes</span>
+                    </a>
+                }
+
             </div>
 
             @* ─── Footer utilisateur ─── *@
             <div class="sidebar-footer">
-                <div class="sidebar-footer-user" title="Prof. Dupont — Administrateur">
-                    <div class="sidebar-avatar" aria-hidden="true">PD</div>
+                @{
+                    var userNomComplet = User.FindFirst("NomComplet")?.Value ?? User.Identity?.Name ?? "Utilisateur";
+                    var userRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "Enseignant";
+                    var userInitiales = GetInitiales(userNomComplet);
+                    var userRoleLabel = userRole switch
+                    {
+                        "Admin" => "Administrateur",
+                        "RespEDT" => "Resp. EDT",
+                        _ => "Enseignant"
+                    };
+                }
+                <div class="sidebar-footer-user" title="@userNomComplet — @userRoleLabel">
+                    <div class="sidebar-avatar" aria-hidden="true">@userInitiales</div>
                     <div class="sidebar-user-info">
-                        <div class="sidebar-user-name">Prof. Dupont</div>
-                        <div class="sidebar-user-role">Administrateur</div>
+                        <div class="sidebar-user-name">@userNomComplet</div>
+                        <div class="sidebar-user-role">@userRoleLabel</div>
                     </div>
                 </div>
             </div>
@@ -159,22 +183,22 @@
                 @* Informations utilisateur *@
                 <div class="topbar-user" aria-label="Utilisateur connecté">
                     <div>
-                        <div class="topbar-user-name">Prof. Dupont</div>
-                        <div class="topbar-user-role">Administrateur</div>
+                        <div class="topbar-user-name">@userNomComplet</div>
+                        <div class="topbar-user-role">@userRoleLabel</div>
                     </div>
-                    <div class="topbar-avatar" aria-hidden="true">PD</div>
+                    <div class="topbar-avatar" aria-hidden="true">@userInitiales</div>
                 </div>
 
                 @* Bouton déconnexion *@
-                <a id="logout-btn"
-                   href="/Account/Logout"
-                   class="btn-logout"
-                   role="button"
-                   title="Se déconnecter"
-                   aria-label="Se déconnecter de l'application">
-                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
-                    <span>Déconnexion</span>
-                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-logout"
+                            title="Se déconnecter"
+                            aria-label="Se déconnecter de l'application">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                        <span>Déconnexion</span>
+                    </button>
+                </form>
 
             </div>
 
@@ -259,8 +283,8 @@
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmXyZRiKH9RXqOBFNNp00f0e2+04"
             crossorigin="anonymous"></script>
 
-    @* 2. MockAPI centralisé *@
-    <script src="~/js/mock-api.js" asp-append-version="true"></script>
+    @* 2. API centralisée *@
+    <script src="~/js/api.js" asp-append-version="true"></script>
 
     @* 3. Moteur de validation *@
     <script src="~/js/validation.js" asp-append-version="true"></script>
@@ -273,3 +297,20 @@
 
 </body>
 </html>
+
+@functions {
+    // Fonction pour générer les initiales à partir du nom complet
+    public static string GetInitiales(string nomComplet)
+    {
+        if (string.IsNullOrWhiteSpace(nomComplet)) return "?";
+
+        var parts = nomComplet.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            return parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper();
+        }
+
+        var initiales = parts[0][0].ToString() + parts[^1][0].ToString();
+        return initiales.ToUpper();
+    }
+}

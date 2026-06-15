@@ -222,5 +222,40 @@ namespace Gestion_EDT.Controllers
 
             return Json(seances);
         }
+
+        // ── POST /Enseignants/DeleteAjax/{id} ────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAjax(int id)
+        {
+            try
+            {
+                var enseignant = await _db.Enseignants
+                    .Include(e => e.Seances)
+                    .FirstOrDefaultAsync(e => e.Id == id);
+
+                if (enseignant == null)
+                {
+                    return Json(new { success = false, message = "Enseignant non trouvé." });
+                }
+
+                bool aSeancesAVenir = enseignant.Seances
+                    .Any(s => s.date_seance >= DateTime.Today);
+
+                if (aSeancesAVenir)
+                {
+                    return Json(new { success = false, message = "Impossible de supprimer : cet enseignant a des séances à venir." });
+                }
+
+                _db.Enseignants.Remove(enseignant);
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, message = $"Enseignant {enseignant.prenom_enseignant} {enseignant.nom_enseignant} supprimé." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Erreur : {ex.Message}" });
+            }
+        }
     }
 }

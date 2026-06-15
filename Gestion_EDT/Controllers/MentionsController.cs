@@ -204,5 +204,105 @@ namespace Gestion_EDT.Controllers
                 .ToListAsync();
             return Json(parcours);
         }
+
+        // ── GET /Mentions/GetAll ──────────────────────────────────────
+        // API JSON pour charger toutes les mentions
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var mentions = await _db.Mentions
+                .OrderBy(m => m.nom_mention)
+                .Select(m => new {
+                    id = m.Id,
+                    nom = m.nom_mention,
+                    niveau = "Licence", // À adapter si vous avez un champ niveau
+                    code = m.code_mention
+                })
+                .ToListAsync();
+            return Json(mentions);
+        }
+
+        // ── POST /Mentions/DeleteAjax/{id} ─────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAjax(int id)
+        {
+            try
+            {
+                var mention = await _db.Mentions
+                    .Include(m => m.Cycles)
+                    .ThenInclude(c => c.Parcours)
+                    .ThenInclude(p => p.Groupes)
+                    .FirstOrDefaultAsync(m => m.Id == id);
+
+                if (mention == null)
+                {
+                    return Json(new { success = false, message = "Mention non trouvée." });
+                }
+
+                // Vérifier si des groupes existent
+                bool aDesGroupes = mention.Cycles
+                    .SelectMany(c => c.Parcours)
+                    .SelectMany(p => p.Groupes)
+                    .Any();
+
+                if (aDesGroupes)
+                {
+                    return Json(new { success = false, message = "Impossible de supprimer : des groupes existent encore dans cette mention." });
+                }
+
+                _db.Mentions.Remove(mention);
+                await _db.SaveChangesAsync();
+
+                return Json(new { success = true, message = $"Mention \"{mention.nom_mention}\" supprimée." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Erreur : {ex.Message}" });
+            }
+        }
+
+        // ── POST /Mentions/UpdateAjax/{id} ─────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAjax(int id, [FromBody] UpdateMentionRequest request)
+        {
+            try
+            {
+                var mention = await _db.Mentions.FindAsync(id);
+                if (mention == null)
+                {
+                    return Json(new { success = false, message = "Mention non trouvée." });
+                }
+
+                mention.nom_mention = request.nom;
+                if (!string.IsNullOrEmpty(request.code))
+                {
+                    mention.code_mention = request.code;
+                }
+
+                await _db.SaveChangesAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    message = $"Mention \"{mention.nom_mention}\" mise à jour.",
+                    mention = new { id = mention.Id, nom = mention.nom_mention, code = mention.code_mention }
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Erreur : {ex.Message}" });
+            }
+        }
+
+        // Classe pour la requête
+        public class UpdateMentionRequest
+        {
+            public string nom { get; set; } = string.Empty;
+            public string? code { get; set; }
+            public string? niveau { get; set; }
+        }
+
     }
 }

@@ -373,6 +373,7 @@
 
         </div>
 
+
         @* COL 2 — APERÇU + TIPS *@
         <div>
 
@@ -563,10 +564,7 @@
             if (statusEl) statusEl.textContent = '';
 
             try {
-                const result = await window.fetchWithSpinner(
-                    btnSub,
-                    window.MockAPI.createMention({ nom, niveau, code })
-                );
+                        const result = await window.API.createMention({ nom, niveau, code });
 
                 window.showToast(
                     `La mention "${result.nom}" (${result.niveau}) a été créée avec succès.`,
@@ -584,7 +582,7 @@
                     statusEl.innerHTML = `<i class="bi bi-hourglass-split" style="margin-right:4px;"></i>Redirection en cours…`;
                 }
                 setTimeout(() => {
-                    window.location.href = '/Mention?created=1';
+                    window.location.href = '/Mentions?created=1';
                 }, 800);
 
             } catch (err) {

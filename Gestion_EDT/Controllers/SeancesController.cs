@@ -310,12 +310,13 @@ namespace Gestion_EDT.Controllers
         }
 
         // ── GET /Seances/GetEvents ───────────────────────────────────
-        // API JSON pour FullCalendar dans Planning/Index.cshtml (timetable.js)
+        // API JSON pour FullCalendar
         [HttpGet]
         public async Task<IActionResult> GetEvents(
-            int? mentionId    = null,
-            int? parcoursId   = null,
-            int? enseignantId = null)
+            int? mentionId = null,
+            int? parcoursId = null,
+            int? enseignantId = null,
+            int? groupeId = null)
         {
             var query = _db.Seances
                 .Include(s => s.Matiere)
@@ -328,8 +329,7 @@ namespace Gestion_EDT.Controllers
                 .AsQueryable();
 
             if (mentionId.HasValue)
-                query = query.Where(s =>
-                    s.Groupe.Parcours.Cycle.MentionId == mentionId);
+                query = query.Where(s => s.Groupe.Parcours.Cycle.MentionId == mentionId);
 
             if (parcoursId.HasValue)
                 query = query.Where(s => s.Groupe.ParcoursId == parcoursId);
@@ -337,36 +337,40 @@ namespace Gestion_EDT.Controllers
             if (enseignantId.HasValue)
                 query = query.Where(s => s.EnseignantId == enseignantId);
 
+            if (groupeId.HasValue)
+                query = query.Where(s => s.GroupeId == groupeId);
+
             var seances = await query.ToListAsync();
 
-            // Couleurs par type de matière (légende Planning/Index.cshtml)
-            static string Couleur(string? type) => (type ?? "").ToUpper() switch
+            // Fonction de couleur selon la matière
+            string GetCouleur(string? matiere)
             {
-                "CM"     => "#73B9E6",  // bleu
-                "TD"     => "#34D399",  // vert
-                "TP"     => "#FBBF24",  // orange
-                "EXAMEN" => "#F87171",  // rouge
-                _        => "#94A3B8"   // gris
-            };
+                return matiere?.ToUpper() switch
+                {
+                    var s when s?.Contains("CM") == true || s?.Contains("COURS") == true => "#73B9E6",
+                    var s when s?.Contains("TD") == true => "#34D399",
+                    var s when s?.Contains("TP") == true => "#FBBF24",
+                    var s when s?.Contains("EXAM") == true => "#F87171",
+                    _ => "#94A3B8"
+                };
+            }
 
             var events = seances.Select(s => new
             {
-                id    = s.Id,
-                title = s.Matiere?.intitule ?? "—",
-                start = s.date_seance.ToString("yyyy-MM-dd")
-                        + "T" + s.heure_debut.ToString(@"hh\:mm\:ss"),
-                end   = s.date_seance.ToString("yyyy-MM-dd")
-                        + "T" + s.heure_fin.ToString(@"hh\:mm\:ss"),
-                backgroundColor = Couleur(s.Matiere?.intitule),
-                borderColor     = Couleur(s.Matiere?.intitule),
+                id = s.Id,
+                title = s.Matiere?.intitule ?? "Séance",
+                start = $"{s.date_seance:yyyy-MM-dd}T{s.heure_debut:hh\\:mm\\:ss}",
+                end = $"{s.date_seance:yyyy-MM-dd}T{s.heure_fin:hh\\:mm\\:ss}",
+                backgroundColor = GetCouleur(s.Matiere?.intitule),
+                borderColor = GetCouleur(s.Matiere?.intitule),
                 extendedProps = new
                 {
-                    enseignant = $"{s.Enseignant?.prenom_enseignant} {s.Enseignant?.nom_enseignant}",
-                    salle      = s.Salle?.num_salle ?? "—",
-                    groupe     = s.Groupe?.nom_groupe ?? "—",
-                    mention    = s.Groupe?.Parcours?.Cycle?.Mention?.nom_mention ?? "—",
-                    parcours   = s.Groupe?.Parcours?.nom_parcours ?? "—",
-                    semaine    = s.semaine
+                    enseignant = s.Enseignant != null ? $"{s.Enseignant.prenom_enseignant} {s.Enseignant.nom_enseignant}" : "—",
+                    salle = s.Salle?.num_salle ?? "—",
+                    groupe = s.Groupe?.nom_groupe ?? "—",
+                    mention = s.Groupe?.Parcours?.Cycle?.Mention?.nom_mention ?? "—",
+                    parcours = s.Groupe?.Parcours?.nom_parcours ?? "—",
+                    semaine = s.semaine
                 }
             });
 

@@ -1,0 +1,390 @@
+@model IEnumerable<Gestion_EDT.Models.Utilisateur>
+@{
+    ViewData["Title"] = "Gestion des comptes";
+    ViewData["ActivePage"] = "Comptes";
+}
+
+<div class="accounts-page">
+
+    <!-- En-tête de page -->
+    <div class="page-header-emit">
+        <div class="page-header-left">
+            <div class="page-icon-wrap admin-icon-wrap">
+                <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div>
+                <h1 class="page-title-emit">Gestion des comptes</h1>
+                <p class="page-subtitle-emit">Administration des utilisateurs et leurs droits d'accès</p>
+            </div>
+        </div>
+        <div class="page-header-actions">
+            <a href="/Account/Create" class="btn-primary-emit">
+                <i class="bi bi-person-plus-fill me-2"></i>
+                Nouveau compte
+            </a>
+        </div>
+    </div>
+
+    <!-- Alertes de succès/erreur -->
+    @if (ViewData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@ViewData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+    }
+    @if (ViewData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@ViewData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+        </div>
+    }
+
+    <!-- Tableau des comptes -->
+    <div class="card-emit table-card">
+        <div class="table-responsive">
+            <table class="table-emit">
+                <thead>
+                    <tr>
+                        <th>Identifiant</th>
+                        <th>Nom complet</th>
+                        <th>Rôle</th>
+                        <th>Enseignant lié</th>
+                        <th>Statut</th>
+                        <th style="width: 120px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="bi bi-person-x-fill" style="font-size: 2rem; opacity: 0.5;"></i>
+                                <p class="mt-2 mb-0">Aucun compte utilisateur trouvé.</p>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var user in Model)
+                        {
+                            var roleLabel = user.Role switch
+                            {
+                                "Admin" => "Administrateur",
+                                "RespEDT" => "Responsable EDT",
+                                "Enseignant" => "Enseignant",
+                                _ => user.Role
+                            };
+                            var roleClass = user.Role switch
+                            {
+                                "Admin" => "badge-admin",
+                                "RespEDT" => "badge-respedt",
+                                _ => "badge-enseignant"
+                            };
+                            <tr>
+                                <td>
+                                    <strong>@user.Login</strong>
+                                    <small class="text-muted d-block">ID: @user.Id</small>
+                                </td>
+                                <td>@(user.NomComplet ?? "—")</td>
+                                <td>
+                                    <span class="badge @roleClass">@roleLabel</span>
+                                </td>
+                                <td>
+                                    @if (user.EnseignantId.HasValue && user.Enseignant != null)
+                                    {
+                                        <span class="text-success">
+                                            <i class="bi bi-person-check-fill me-1"></i>
+                                            @user.Enseignant.prenom_enseignant @user.Enseignant.nom_enseignant
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (user.Actif)
+                                    {
+                                        <span class="badge badge-success">
+                                            <i class="bi bi-check-circle-fill me-1"></i>Actif
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-danger">
+                                            <i class="bi bi-x-circle-fill me-1"></i>Inactif
+                                        </span>
+                                    }
+                                </td>
+                                <td>
+                                    <div class="actions-cell">
+                                        <a href="/Account/Edit/@user.Id"
+                                           class="btn-icon-emit"
+                                           title="Modifier le compte"
+                                           aria-label="Modifier @user.Login">
+                                            <i class="bi bi-pencil-fill"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn-icon-emit danger btn-delete"
+                                                data-id="@user.Id"
+                                                data-login="@user.Login"
+                                                title="Supprimer le compte"
+                                                aria-label="Supprimer @user.Login">
+                                            <i class="bi bi-trash3-fill"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .accounts-page {
+        padding: 1.5rem;
+    }
+
+    .page-header-emit {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.75rem;
+    }
+
+    .page-header-left {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .page-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        flex-shrink: 0;
+    }
+
+    .admin-icon-wrap {
+        background: linear-gradient(135deg, #A78BFA, #7C3AED);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
+    }
+
+    .page-title-emit {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .page-subtitle-emit {
+        font-size: 0.83rem;
+        color: var(--text-muted);
+        margin: 0;
+        margin-top: 2px;
+    }
+
+    .table-card {
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table-emit {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-emit th {
+            text-align: left;
+            padding: 1rem 1.25rem;
+            background: rgba(23, 37, 84, 0.4);
+            border-bottom: 1px solid rgba(115, 185, 230, 0.1);
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .table-emit td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid rgba(115, 185, 230, 0.07);
+            color: var(--text-primary);
+            font-size: 0.88rem;
+        }
+
+        .table-emit tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-emit tr:hover td {
+            background: rgba(115, 185, 230, 0.03);
+        }
+
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-admin {
+        background: rgba(167, 139, 250, 0.15);
+        color: #A78BFA;
+        border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+
+    .badge-respedt {
+        background: rgba(52, 211, 153, 0.15);
+        color: #34D399;
+        border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+
+    .badge-enseignant {
+        background: rgba(115, 185, 230, 0.15);
+        color: var(--accent);
+        border: 1px solid rgba(115, 185, 230, 0.25);
+    }
+
+    .badge-success {
+        background: rgba(52, 211, 153, 0.12);
+        color: #34D399;
+    }
+
+    .badge-danger {
+        background: rgba(248, 113, 113, 0.12);
+        color: #F87171;
+    }
+
+    .actions-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-icon-emit {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(115, 185, 230, 0.1);
+        border: 1px solid rgba(115, 185, 230, 0.15);
+        color: var(--accent);
+        text-decoration: none;
+        transition: var(--transition);
+        cursor: pointer;
+    }
+
+        .btn-icon-emit:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg-primary);
+        }
+
+        .btn-icon-emit.danger:hover {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+    @@media (max-width: 768px) {
+        .accounts-page {
+            padding: 1rem;
+        }
+
+        .table-emit th, .table-emit td {
+            padding: 0.75rem;
+        }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        (function () {
+            'use strict';
+
+            async function handleDelete(btn) {
+                const id = parseInt(btn.dataset.id, 10);
+                const login = btn.dataset.login || 'ce compte';
+
+                const confirmed = await window.showConfirmModal({
+                    title: 'Supprimer le compte',
+                    message: `Voulez-vous vraiment supprimer le compte <strong>"${escapeHtml(login)}"</strong> ?<br>
+                               <small class="text-warning mt-2 d-block">
+                                   <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                   Cette action est irréversible.
+                               </small>`,
+                    confirmText: 'Supprimer',
+                    cancelText: 'Annuler',
+                    confirmClass: 'btn-danger-emit',
+                    icon: 'bi-trash3-fill'
+                });
+
+                if (!confirmed) return;
+
+                try {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/Account/Delete/${id}`;
+
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (token) {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = '__RequestVerificationToken';
+                        input.value = token.value;
+                        form.appendChild(input);
+                    }
+
+                    document.body.appendChild(form);
+                    form.submit();
+
+                } catch (err) {
+                    window.showToast('Erreur lors de la suppression', 'error');
+                    console.error(err);
+                }
+            }
+
+            const tbody = document.querySelector('.table-emit tbody');
+            if (tbody) {
+                tbody.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.btn-delete');
+                    if (btn) handleDelete(btn);
+                });
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    return m;
+                });
+            }
+        })();
+    </script>
+}

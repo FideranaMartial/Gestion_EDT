@@ -2,6 +2,7 @@
  * timetable.js — EMIT Planning Module
  * FullCalendar v6.1.10 + Bootstrap 5 Popovers
  * Filtres en cascade : Mention → Parcours → Groupe
+ * UTILISE LES VRAIES APIs
  */
 
 (function () {
@@ -41,21 +42,30 @@
   /* ─── Référence calendrier ────────────────────────────────── */
   let calendar = null;
 
+  /* ─── Récupère le token CSRF ───────────────────────────────── */
+  function getAntiForgeryToken() {
+    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+    return token ? token.value : '';
+  }
+
   /* ─── Peuple le select Mention ────────────────────────────── */
   async function loadMentions() {
     const sel = document.getElementById('filterMention');
     if (!sel) return;
     sel.innerHTML = '<option value="">Toutes les mentions</option>';
     try {
-      const mentions = await window.MockAPI.getMentions();
+      const response = await fetch('/Mentions/GetAll');
+      if (!response.ok) throw new Error('Erreur chargement mentions');
+      const mentions = await window.API.getMentions();
       mentions.forEach(m => {
         const opt = document.createElement('option');
         opt.value = m.id;
-        opt.textContent = `${m.nom} — ${m.niveau}`;
+        opt.textContent = m.nom_mention || m.nom;
         sel.appendChild(opt);
       });
-    } catch {
+    } catch (err) {
       window.showToast('Impossible de charger les mentions.', 'error');
+      console.error(err);
     }
   }
 
@@ -76,15 +86,19 @@
 
     if (!mentionId) return;
     try {
-      const parcours = await window.MockAPI.getParcours(mentionId);
+      // Utilise l'API de PlanningController ou MentionsController
+      const response = await fetch(`/Planning/GetParcours?mentionId=${mentionId}`);
+      if (!response.ok) throw new Error('Erreur chargement parcours');
+      const parcours = await response.json();
       parcours.forEach(p => {
         const opt = document.createElement('option');
-        opt.value = p.id;
-        opt.textContent = p.nom;
+        opt.value = p.value;
+        opt.textContent = p.label;
         sel.appendChild(opt);
       });
-    } catch {
+    } catch (err) {
       window.showToast('Impossible de charger les parcours.', 'error');
+      console.error(err);
     }
   }
 
@@ -98,15 +112,18 @@
 
     if (!parcoursId) return;
     try {
-      const groupes = await window.MockAPI.getGroupes(parcoursId);
+      const response = await fetch(`/Planning/GetGroupes?parcoursId=${parcoursId}`);
+      if (!response.ok) throw new Error('Erreur chargement groupes');
+      const groupes = await response.json();
       groupes.forEach(g => {
         const opt = document.createElement('option');
-        opt.value = g.id;
-        opt.textContent = g.nom;
+        opt.value = g.value;
+        opt.textContent = g.label;
         sel.appendChild(opt);
       });
-    } catch {
+    } catch (err) {
       window.showToast('Impossible de charger les groupes.', 'error');
+      console.error(err);
     }
   }
 
@@ -147,32 +164,30 @@
       slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
 
-      /* ── Source d'événements via MockAPI ── */
+      /* ── Source d'événements via API réelle ── */
       events: async function (fetchInfo, successCallback, failureCallback) {
         try {
-          const seances = await window.MockAPI.getSeances({
-            mentionId: filters.mentionId,
-            parcoursId: filters.parcoursId,
-            groupeId: filters.groupeId,
-          });
-          const events = seances.map(s => ({
-            id: s.id,
-            title: s.title,
-            start: s.start,
-            end: s.end,
-            extendedProps: {
-              salle: s.salle,
-              professeur: s.professeur,
-              groupe: s.groupe,
-            },
-            backgroundColor: getColor(s.title) + '22',
-            borderColor: getColor(s.title),
-            textColor: '#F5F7FA',
-          }));
+            const seances = await window.API.getSeances({
+                mentionId: filters.mentionId,
+                parcoursId: filters.parcoursId,
+                groupeId: filters.groupeId
+            });
+          
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Erreur chargement séances');
+          const events = await response.json();
           successCallback(events);
         } catch (err) {
           failureCallback(err);
           window.showToast('Erreur lors du chargement des séances.', 'error');
+          console.error(err);
+        }
+      },
+
+      eventClick: function(info) {
+        // Rediriger vers la page de détail ou d'édition
+        if (info.event.id) {
+          window.location.href = `/Seances/Edit/${info.event.id}`;
         }
       },
 
@@ -183,13 +198,15 @@
         info.el.style.borderRadius = '6px';
         info.el.style.fontSize = '0.78rem';
         info.el.style.padding = '2px 4px';
+        info.el.style.cursor = 'pointer';
 
         const props = info.event.extendedProps;
         const content = `
           <div style="font-size:0.82rem;line-height:1.5;min-width:180px;">
             <div><i class="bi bi-door-open-fill me-1" style="color:#73B9E6"></i><strong>${props.salle || '—'}</strong></div>
-            <div><i class="bi bi-person-fill me-1" style="color:#34D399"></i>${props.professeur || '—'}</div>
+            <div><i class="bi bi-person-fill me-1" style="color:#34D399"></i>${props.enseignant || '—'}</div>
             <div><i class="bi bi-people-fill me-1" style="color:#FBBF24"></i>${props.groupe || '—'}</div>
+            ${props.mention ? `<div><i class="bi bi-building me-1" style="color:#A78BFA"></i>${props.mention}</div>` : ''}
           </div>`;
 
         const popover = new bootstrap.Popover(info.el, {
@@ -202,11 +219,9 @@
           container: 'body',
         });
 
-        /* Nettoyage au retrait du DOM */
         info.el.addEventListener('remove', () => popover.dispose(), { once: true });
       },
 
-      /* ── Nettoyage popovers avant re-render ── */
       eventWillUnmount: function () {
         destroyPopovers();
       },
@@ -265,7 +280,7 @@
     }
   }
 
-  /* ─── Bootstrap CSS custom pour les popovers EMIT ─────────── */
+  /* ─── CSS pour les popovers ──────────────────────────────── */
   function injectPopoverStyles() {
     if (document.getElementById('emit-popover-style')) return;
     const style = document.createElement('style');

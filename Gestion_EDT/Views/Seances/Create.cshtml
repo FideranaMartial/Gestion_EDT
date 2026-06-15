@@ -483,7 +483,7 @@
     async function loadEnseignants() {
         const sel = document.getElementById('enseignantId');
         try {
-            const list = await window.MockAPI.getEnseignants();
+                    const list = await window.API.getEnseignants();
             sel.innerHTML = '<option value="">— Choisir un enseignant —</option>';
             list.forEach(e => {
                 const opt = document.createElement('option');
@@ -549,7 +549,7 @@
 
         checkingInd.style.display = 'flex';
         try {
-            const result = await window.MockAPI.checkConflit(payload);
+            const result = await window.API.checkConflit(payload);
             if (result.hasConflit) {
                 showConflitAlert(result.message, result.type);
             } else {
@@ -634,7 +634,7 @@
         /* 4. Appel via fetchWithSpinner */
         window.fetchWithSpinner(
             btnSubmit,
-            window.MockAPI.createSeance(payload)
+            await window.API.createSeance(payload);
         ).then(result => {
             if (result && result.success) {
                 window.showToast('Séance créée avec succès !', 'success');

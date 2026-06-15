@@ -640,11 +640,11 @@
 
         try {
             /* Chargements en parallèle */
-            const [kpis, seancesParJour, mentions] = await Promise.all([
-                window.MockAPI.getKPIs(),
-                window.MockAPI.getSeancesParJour(),
-                window.MockAPI.getMentions(),
-            ]);
+                    const [kpis, seancesParJour, mentions] = await Promise.all([
+            window.API.getKPIs(),
+            window.API.getSeancesParJour(),
+            window.API.getMentions(),
+        ]);
 
             renderKpis(kpis);
             renderChart(seancesParJour);

@@ -59,5 +59,43 @@ namespace Gestion_EDT.Controllers
                             ?? HttpContext.TraceIdentifier
             });
         }
+
+        // ── GET /Home/GetKPIs ──────────────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetKPIs()
+        {
+            var kpis = new
+            {
+                totalMentions = await _db.Mentions.CountAsync(),
+                totalEnseignants = await _db.Enseignants.CountAsync(),
+                totalGroupes = await _db.Groupes.CountAsync(),
+                totalSalles = await _db.Salles.CountAsync(),
+                totalMatieres = await _db.Matieres.CountAsync(),
+                seancesSemaine = await _db.Seances.CountAsync(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today)),
+                heuresEnseignees = await _db.Seances
+                    .Where(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today))
+                    .SumAsync(s => (s.heure_fin - s.heure_debut).TotalHours)
+            };
+            return Json(kpis);
+        }
+
+        // ── GET /Home/GetSeancesParJour ────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetSeancesParJour()
+        {
+            var jours = new[] { "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi" };
+            var data = new int[5];
+
+            for (int i = 0; i < 5; i++)
+            {
+                // Lundi = 1, Mardi = 2, etc.
+                int jourSemaine = i + 1;
+                data[i] = await _db.Seances
+                    .Where(s => ((int)s.date_seance.DayOfWeek + 6) % 7 + 1 == jourSemaine)
+                    .CountAsync();
+            }
+
+            return Json(new { labels = jours, data = data });
+        }
     }
 }
