@@ -18,6 +18,9 @@
         </div>
         <div class="page-header-actions">
             <span id="ensCount" class="ens-count-badge" aria-live="polite"></span>
+            <button type="button" id="btnNouveauEns" class="btn-emit-primary">
+                <i class="bi bi-person-plus-fill me-1"></i>Nouveau
+            </button>
         </div>
     </div>
 
@@ -100,6 +103,97 @@
         </div>
 
     </div><!-- /#enseignantsGrid -->
+
+    <!-- ════════════════════════════════════════════════════
+         MODAL — Créer / Modifier un enseignant
+    ════════════════════════════════════════════════════ -->
+    <div class="ens-modal-backdrop" id="ensModalBackdrop" style="display:none;">
+        <div class="ens-modal" role="dialog" aria-modal="true" aria-labelledby="ensModalTitle">
+            <div class="ens-modal-header">
+                <h3 id="ensModalTitle"><i class="bi bi-person-plus-fill me-2"></i>Nouvel enseignant</h3>
+                <button type="button" class="ens-modal-close" id="ensModalClose" aria-label="Fermer">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <form id="ensForm" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="ensId" name="Id" value="0" />
+
+                <div class="ens-modal-body">
+
+                    <!-- Erreur globale -->
+                    <div class="ens-form-alert" id="ensFormAlert" style="display:none;"></div>
+
+                    <div class="ens-form-group">
+                        <label for="ensMatricule">Matricule <span class="req">*</span></label>
+                        <input type="text" id="ensMatricule" name="matricule" class="ens-form-input"
+                               placeholder="ex : ENS-2026-001" autocomplete="off" required />
+                        <span class="ens-form-error" id="errMatricule"></span>
+                    </div>
+
+                    <div class="ens-form-row">
+                        <div class="ens-form-group">
+                            <label for="ensNom">Nom <span class="req">*</span></label>
+                            <input type="text" id="ensNom" name="nom_enseignant" class="ens-form-input"
+                                   placeholder="ex : Razafy" autocomplete="off" required />
+                            <span class="ens-form-error" id="errNom"></span>
+                        </div>
+                        <div class="ens-form-group">
+                            <label for="ensPrenom">Prénom <span class="req">*</span></label>
+                            <input type="text" id="ensPrenom" name="prenom_enseignant" class="ens-form-input"
+                                   placeholder="ex : Hery" autocomplete="off" required />
+                            <span class="ens-form-error" id="errPrenom"></span>
+                        </div>
+                    </div>
+
+                    <div class="ens-form-group">
+                        <label for="ensGrade">Grade <span class="req">*</span></label>
+                        <select id="ensGrade" name="grade" class="ens-form-input" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="Assistant">Assistant</option>
+                            <option value="Maître de conférences">Maître de conférences</option>
+                            <option value="Professeur">Professeur</option>
+                            <option value="Vacataire">Vacataire</option>
+                        </select>
+                        <span class="ens-form-error" id="errGrade"></span>
+                    </div>
+
+                </div>
+
+                <div class="ens-modal-footer">
+                    <button type="button" class="btn-emit-ghost" id="ensCancelBtn">Annuler</button>
+                    <button type="submit" class="btn-emit-primary" id="ensSubmitBtn">
+                        <i class="bi bi-check-lg me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════
+         MODAL — Confirmation suppression
+    ════════════════════════════════════════════════════ -->
+    <div class="ens-modal-backdrop" id="ensDeleteBackdrop" style="display:none;">
+        <div class="ens-modal ens-modal--sm" role="dialog" aria-modal="true">
+            <div class="ens-modal-header">
+                <h3><i class="bi bi-exclamation-triangle-fill me-2" style="color:var(--danger)"></i>Confirmer la suppression</h3>
+                <button type="button" class="ens-modal-close" id="ensDeleteClose" aria-label="Fermer">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="ens-modal-body">
+                <p id="ensDeleteText">Voulez-vous vraiment supprimer cet enseignant ?</p>
+                <div class="ens-form-alert" id="ensDeleteAlert" style="display:none;"></div>
+            </div>
+            <div class="ens-modal-footer">
+                <button type="button" class="btn-emit-ghost" id="ensDeleteCancel">Annuler</button>
+                <button type="button" class="btn-emit-danger" id="ensDeleteConfirm">
+                    <i class="bi bi-trash3-fill me-1"></i>Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
 
 </div><!-- /.enseignants-page -->
 
@@ -413,6 +507,217 @@
         .enseignants-page { padding: 0.75rem; }
         .emit-search-group { max-width: 100%; }
     }
+
+    /* ════════════════════════════════════════════════════
+       BOUTONS — réutilisables (Nouveau / Annuler / Supprimer)
+    ════════════════════════════════════════════════════ */
+    .btn-emit-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        background: var(--accent);
+        color: var(--bg-primary);
+        border: none;
+        border-radius: 8px;
+        font-family: var(--font-main);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        box-shadow: 0 2px 8px rgba(115, 185, 230, 0.2);
+    }
+    .btn-emit-primary:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 14px rgba(115, 185, 230, 0.4);
+    }
+    .btn-emit-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-emit-ghost {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        background: transparent;
+        color: var(--text-primary);
+        border: 1px solid rgba(115, 185, 230, 0.25);
+        border-radius: 8px;
+        font-family: var(--font-main);
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .btn-emit-ghost:hover {
+        background: rgba(115, 185, 230, 0.08);
+        border-color: rgba(115, 185, 230, 0.4);
+    }
+
+    .btn-emit-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.1rem;
+        background: var(--danger);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-family: var(--font-main);
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .btn-emit-danger:hover { background: #dc2626; transform: translateY(-1px); }
+    .btn-emit-danger:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ── Icônes d'action sur la carte (edit / delete) ── */
+    .ens-card-icons {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        display: flex;
+        gap: 0.4rem;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .enseignant-card:hover .ens-card-icons { opacity: 1; }
+    .ens-icon-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 1px solid rgba(115, 185, 230, 0.2);
+        background: rgba(23, 37, 84, 0.7);
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: var(--transition);
+    }
+    .ens-icon-btn:hover { color: var(--text-primary); border-color: rgba(115,185,230,0.4); }
+    .ens-icon-btn--danger:hover { color: var(--danger); border-color: rgba(248,113,113,0.4); }
+
+    /* ════════════════════════════════════════════════════
+       MODAL
+    ════════════════════════════════════════════════════ */
+    .ens-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(8, 13, 31, 0.65);
+        backdrop-filter: blur(3px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1050;
+        padding: 1rem;
+    }
+    .ens-modal {
+        background: var(--bg-surface);
+        border: 1px solid rgba(115, 185, 230, 0.15);
+        border-radius: var(--radius);
+        box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+        width: 100%;
+        max-width: 480px;
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: card-enter 0.2s ease both;
+    }
+    .ens-modal--sm { max-width: 420px; }
+
+    .ens-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.1rem 1.4rem;
+        border-bottom: 1px solid rgba(115, 185, 230, 0.1);
+    }
+    .ens-modal-header h3 {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+    }
+    .ens-modal-close {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 6px;
+        transition: var(--transition);
+    }
+    .ens-modal-close:hover { color: var(--text-primary); background: rgba(115,185,230,0.08); }
+
+    .ens-modal-body { padding: 1.4rem; }
+    .ens-modal-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        padding: 1rem 1.4rem;
+        border-top: 1px solid rgba(115, 185, 230, 0.1);
+    }
+
+    .ens-form-group { margin-bottom: 1.1rem; }
+    .ens-form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+    }
+    .ens-form-group label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 0.4rem;
+    }
+    .ens-form-group label .req { color: var(--danger); }
+    .ens-form-input {
+        width: 100%;
+        background: rgba(23, 37, 84, 0.5);
+        border: 1px solid rgba(115, 185, 230, 0.2);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        font-size: 0.88rem;
+        padding: 0.6rem 0.8rem;
+        outline: none;
+        transition: var(--transition);
+    }
+    .ens-form-input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(115, 185, 230, 0.15);
+    }
+    .ens-form-input.is-invalid { border-color: var(--danger); }
+    .ens-form-error {
+        display: block;
+        font-size: 0.75rem;
+        color: var(--danger);
+        margin-top: 0.3rem;
+        min-height: 1em;
+    }
+    .ens-form-alert {
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        border-radius: 8px;
+        color: var(--text-primary);
+        font-size: 0.85rem;
+        padding: 0.7rem 1rem;
+        margin-bottom: 1rem;
+    }
+    .ens-form-alert.success {
+        background: rgba(52, 211, 153, 0.1);
+        border-color: rgba(52, 211, 153, 0.3);
+    }
+
+    @@media (max-width: 576px) {
+        .ens-form-row { grid-template-columns: 1fr; }
+    }
 </style>
 
 @section Scripts {
@@ -525,6 +830,16 @@
         card.setAttribute('aria-label', `Enseignant ${ens.prenom} ${ens.nom}`);
 
         card.innerHTML = `
+            <!-- Icônes d'action -->
+            <div class="ens-card-icons">
+                <button type="button" class="ens-icon-btn ens-edit-btn" data-id="${ens.id}" title="Modifier" aria-label="Modifier ${escHtml(ens.prenom)} ${escHtml(ens.nom)}">
+                    <i class="bi bi-pencil-fill"></i>
+                </button>
+                <button type="button" class="ens-icon-btn ens-icon-btn--danger ens-delete-btn" data-id="${ens.id}" data-nom="${escHtml(ens.prenom)} ${escHtml(ens.nom)}" title="Supprimer" aria-label="Supprimer ${escHtml(ens.prenom)} ${escHtml(ens.nom)}">
+                    <i class="bi bi-trash3-fill"></i>
+                </button>
+            </div>
+
             <!-- Avatar initiales -->
             <div class="ens-avatar" aria-hidden="true"
                  style="--ens-color:${color}">
@@ -662,6 +977,292 @@
                 <div class="sk-line sk-line--full skeleton-loader" style="height:36px;border-radius:8px;margin-top:0.5rem;"></div>
             </div>`;
         loadEnseignants();
+    });
+
+    /* ════════════════════════════════════════════════════
+       CRUD — Création / Modification / Suppression
+    ════════════════════════════════════════════════════ */
+
+    /* REFS DOM — modal Create/Edit */
+    const ensModalBackdrop = document.getElementById('ensModalBackdrop');
+    const ensModalTitle    = document.getElementById('ensModalTitle');
+    const ensForm          = document.getElementById('ensForm');
+    const ensFormAlert     = document.getElementById('ensFormAlert');
+    const ensSubmitBtn     = document.getElementById('ensSubmitBtn');
+    const ensIdInput       = document.getElementById('ensId');
+    const ensMatricule     = document.getElementById('ensMatricule');
+    const ensNom           = document.getElementById('ensNom');
+    const ensPrenom        = document.getElementById('ensPrenom');
+    const ensGrade         = document.getElementById('ensGrade');
+    const btnNouveauEns    = document.getElementById('btnNouveauEns');
+    const ensModalClose    = document.getElementById('ensModalClose');
+    const ensCancelBtn     = document.getElementById('ensCancelBtn');
+
+    /* REFS DOM — modal Delete */
+    const ensDeleteBackdrop = document.getElementById('ensDeleteBackdrop');
+    const ensDeleteText     = document.getElementById('ensDeleteText');
+    const ensDeleteAlert    = document.getElementById('ensDeleteAlert');
+    const ensDeleteConfirm  = document.getElementById('ensDeleteConfirm');
+    const ensDeleteCancel   = document.getElementById('ensDeleteCancel');
+    const ensDeleteClose    = document.getElementById('ensDeleteClose');
+    let _deleteTargetId = null;
+
+    /** Récupère le token antiforgery du formulaire */
+    function getAntiForgeryToken() {
+        const input = ensForm.querySelector('input[name="__RequestVerificationToken"]');
+        return input ? input.value : '';
+    }
+
+    /** Réinitialise le formulaire et les erreurs */
+    function resetForm() {
+        ensForm.reset();
+        ensIdInput.value = '0';
+        ensFormAlert.style.display = 'none';
+        ensFormAlert.className = 'ens-form-alert';
+        ['Matricule', 'Nom', 'Prenom', 'Grade'].forEach(f => {
+            const err = document.getElementById('err' + f);
+            if (err) err.textContent = '';
+            const input = document.getElementById('ens' + f);
+            if (input) input.classList.remove('is-invalid');
+        });
+    }
+
+    /** Ouvre le modal en mode CRÉATION */
+    function openCreateModal() {
+        resetForm();
+        ensModalTitle.innerHTML = '<i class="bi bi-person-plus-fill me-2"></i>Nouvel enseignant';
+        ensSubmitBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Enregistrer';
+        ensModalBackdrop.style.display = 'flex';
+        setTimeout(() => ensMatricule.focus(), 100);
+    }
+
+    /** Ouvre le modal en mode ÉDITION, charge les données via GetOne */
+    async function openEditModal(id) {
+        resetForm();
+        ensModalTitle.innerHTML = '<i class="bi bi-pencil-fill me-2"></i>Modifier l\'enseignant';
+        ensSubmitBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Enregistrer';
+        ensModalBackdrop.style.display = 'flex';
+
+        try {
+            const res = await fetch(`/Enseignants/GetOne/${id}`);
+            const json = await res.json();
+
+            if (!json.success) {
+                showFormAlert(json.message || 'Enseignant non trouvé.', 'error');
+                return;
+            }
+
+            ensIdInput.value   = json.data.id;
+            ensMatricule.value = json.data.matricule;
+            ensNom.value       = json.data.nom;
+            ensPrenom.value    = json.data.prenom;
+            ensGrade.value     = json.data.grade;
+
+        } catch (err) {
+            showFormAlert('Erreur réseau lors du chargement.', 'error');
+            console.error('[Enseignant/GetOne]', err);
+        }
+    }
+
+    /** Ferme le modal Create/Edit */
+    function closeFormModal() {
+        ensModalBackdrop.style.display = 'none';
+    }
+
+    /** Affiche un message d'alerte dans le modal */
+    function showFormAlert(message, type) {
+        ensFormAlert.textContent = message;
+        ensFormAlert.className = 'ens-form-alert' + (type === 'success' ? ' success' : '');
+        ensFormAlert.style.display = 'block';
+    }
+
+            /** Affiche les erreurs de validation par champ */
+        function showFieldErrors(erreurs) {
+            const map = {
+                matricule: 'Matricule',
+                nom_enseignant: 'Nom',
+                prenom_enseignant: 'Prenom',
+                grade: 'Grade'
+            };
+            Object.keys(erreurs).forEach(key => {
+                const field = map[key];
+                if (!field) return;
+                const errEl = document.getElementById('err' + field);
+                const inputEl = document.getElementById('ens' + field);
+                if (errEl) errEl.textContent = erreurs[key];
+                if (inputEl) inputEl.classList.add('is-invalid');
+            });
+        }
+
+            /** Soumission du formulaire (Create ou Edit selon ensId) */
+    ensForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        ensFormAlert.style.display = 'none';
+        ['Matricule', 'Nom', 'Prenom', 'Grade'].forEach(f => {
+            const err = document.getElementById('err' + f);
+            if (err) err.textContent = '';
+            const input = document.getElementById('ens' + f);
+            if (input) input.classList.remove('is-invalid');
+        });
+
+        const id = parseInt(ensIdInput.value, 10);
+        const isEdit = id > 0;
+
+        const payload = {
+            Id: id,
+            matricule: ensMatricule.value.trim(),
+            nom_enseignant: ensNom.value.trim(),
+            prenom_enseignant: ensPrenom.value.trim(),
+            grade: ensGrade.value
+        };
+
+        /* Validation cliente minimale */
+        if (!payload.matricule || !payload.nom_enseignant || !payload.prenom_enseignant || !payload.grade) {
+            showFormAlert('Veuillez remplir tous les champs obligatoires.', 'error');
+            return;
+        }
+
+        const url = isEdit ? `/Enseignants/EditAjax/${id}` : '/Enseignants/CreateAjax';
+
+        ensSubmitBtn.disabled = true;
+        ensSubmitBtn.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Enregistrement…';
+
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+
+            if (!json.success) {
+                showFormAlert(json.message || 'Une erreur est survenue.', 'error');
+                showFieldErrors(json.erreurs);
+                return;
+            }
+
+            /* Met à jour les données locales */
+            if (isEdit) {
+                const idx = _allData.findIndex(x => x.id === json.data.id);
+                if (idx >= 0) {
+                    _allData[idx] = Object.assign({}, _allData[idx], {
+                        matricule: json.data.matricule,
+                        nom: json.data.nom,
+                        prenom: json.data.prenom,
+                        grade: json.data.grade
+                    });
+                }
+            } else {
+                _allData.push(Object.assign({ matieres: [] }, {
+                    id: json.data.id,
+                    matricule: json.data.matricule,
+                    nom: json.data.nom,
+                    prenom: json.data.prenom,
+                    grade: json.data.grade
+                }));
+            }
+
+            applyFilter(searchInput.value);
+            closeFormModal();
+
+        } catch (err) {
+            showFormAlert('Erreur réseau. Veuillez réessayer.', 'error');
+            console.error('[Enseignant/Save]', err);
+        } finally {
+            ensSubmitBtn.disabled = false;
+            ensSubmitBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Enregistrer';
+        }
+    });
+
+    /* Ouverture modal Création */
+    btnNouveauEns.addEventListener('click', openCreateModal);
+
+    /* Fermeture modal Create/Edit */
+    ensModalClose.addEventListener('click', closeFormModal);
+    ensCancelBtn.addEventListener('click', closeFormModal);
+    ensModalBackdrop.addEventListener('click', function (e) {
+        if (e.target === ensModalBackdrop) closeFormModal();
+    });
+
+    /* ── Suppression ── */
+    function openDeleteModal(id, nom) {
+        _deleteTargetId = id;
+        ensDeleteAlert.style.display = 'none';
+        ensDeleteText.textContent = `Voulez-vous vraiment supprimer ${nom} ? Cette action est irréversible.`;
+        ensDeleteBackdrop.style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        ensDeleteBackdrop.style.display = 'none';
+        _deleteTargetId = null;
+    }
+
+    ensDeleteCancel.addEventListener('click', closeDeleteModal);
+    ensDeleteClose.addEventListener('click', closeDeleteModal);
+    ensDeleteBackdrop.addEventListener('click', function (e) {
+        if (e.target === ensDeleteBackdrop) closeDeleteModal();
+    });
+
+    ensDeleteConfirm.addEventListener('click', async function () {
+        if (!_deleteTargetId) return;
+
+        ensDeleteConfirm.disabled = true;
+        ensDeleteConfirm.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Suppression…';
+        ensDeleteAlert.style.display = 'none';
+
+        try {
+            const res = await fetch(`/Enseignants/DeleteAjax/${_deleteTargetId}`, {
+                method: 'POST',
+                headers: {
+                    'RequestVerificationToken': getAntiForgeryToken()
+                }
+            });
+            const json = await res.json();
+
+            if (!json.success) {
+                ensDeleteAlert.textContent = json.message || 'Suppression impossible.';
+                ensDeleteAlert.style.display = 'block';
+                return;
+            }
+
+            _allData = _allData.filter(x => x.id !== _deleteTargetId);
+            applyFilter(searchInput.value);
+            closeDeleteModal();
+
+        } catch (err) {
+            ensDeleteAlert.textContent = 'Erreur réseau. Veuillez réessayer.';
+            ensDeleteAlert.style.display = 'block';
+            console.error('[Enseignant/Delete]', err);
+        } finally {
+            ensDeleteConfirm.disabled = false;
+            ensDeleteConfirm.innerHTML = '<i class="bi bi-trash3-fill me-1"></i>Supprimer';
+        }
+    });
+
+    /* Délégation d'événements sur la grille pour edit/delete (cartes dynamiques) */
+    grid.addEventListener('click', function (e) {
+        const editBtn = e.target.closest('.ens-edit-btn');
+        if (editBtn) {
+            openEditModal(parseInt(editBtn.dataset.id, 10));
+            return;
+        }
+        const delBtn = e.target.closest('.ens-delete-btn');
+        if (delBtn) {
+            openDeleteModal(parseInt(delBtn.dataset.id, 10), delBtn.dataset.nom);
+            return;
+        }
+    });
+
+    /* Fermeture des modals avec la touche Échap */
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            if (ensModalBackdrop.style.display === 'flex') closeFormModal();
+            if (ensDeleteBackdrop.style.display === 'flex') closeDeleteModal();
+        }
     });
 
     /* INIT*/
