@@ -66,29 +66,60 @@ public async Task<IActionResult> GetKPIs()
 {
     try
     {
+        // 1. Total des mentions (obligatoire)
         var totalMentions = await _db.Mentions.CountAsync();
-        var seancesSemaine = await _db.Seances.CountAsync(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today));
-        var heuresEnseignees = await _db.Seances
-            .Where(s => s.semaine == System.Globalization.ISOWeek.GetWeekOfYear(DateTime.Today))
-            .SumAsync(s => (s.heure_fin - s.heure_debut).TotalHours);
 
-        var kpis = new
+        // 2. Séances de la semaine (uniquement si la table Seances existe)
+        var seancesSemaine = 0;
+        var heuresEnseignees = 0.0;
+        try
         {
-            totalMentions = totalMentions,
-            seancesSemaine = seancesSemaine,
-            tauxOccupation = 78, // valeur temporaire
+            var today = DateTime.Today;
+            var startOfWeek = today.AddDays(-(int)today.DayOfWeek + 1); // Lundi
+            var endOfWeek = startOfWeek.AddDays(5); // Vendredi
+            seancesSemaine = await _db.Seances
+                .Where(s => s.date_seance >= startOfWeek && s.date_seance <= endOfWeek)
+                .CountAsync();
+            heuresEnseignees = await _db.Seances
+                .Where(s => s.date_seance >= startOfWeek && s.date_seance <= endOfWeek)
+                .SumAsync(s => (s.heure_fin - s.heure_debut).TotalHours);
+        }
+        catch
+        {
+            // Si la table Seances n'existe pas, on ignore et on garde les valeurs par défaut
+        }
+
+        // 3. Taux d'occupation (uniquement si Salles existe)
+        var tauxOccupation = 0;
+        try
+        {
+            var totalSalles = await _db.Salles.CountAsync();
+            if (totalSalles > 0)
+            {
+                tauxOccupation = (int)Math.Round((double)seancesSemaine / (totalSalles * 5) * 100);
+            }
+        }
+        catch
+        {
+            // Si la table Salles n'existe pas, on ignore
+        }
+
+        return Json(new
+        {
+            totalMentions,
+            seancesSemaine,
+            tauxOccupation,
             heuresEnseignees = Math.Round(heuresEnseignees, 1)
-        };
-        return Json(kpis);
+        });
     }
     catch (Exception ex)
     {
-        // Logguer l'erreur (vous verrez dans la console)
-        System.Diagnostics.Debug.WriteLine($"Erreur dans GetKPIs: {ex.Message}");
-        return Json(new { error = ex.Message, totalMentions = 0, seancesSemaine = 0, tauxOccupation = 0, heuresEnseignees = 0 });
+        // Log de l'erreur réelle
+        System.Console.WriteLine($"Erreur GetKPIs: {ex.Message}");
+        // Retourner des valeurs par défaut (0) pour ne pas planter le dashboard
+        return Json(new { totalMentions = 0, seancesSemaine = 0, tauxOccupation = 0, heuresEnseignees = 0 });
     }
 }
-
 // ── GET /Home/GetSeancesParJour ────────────────────────────
 [HttpGet]
 public async Task<IActionResult> GetSeancesParJour()
