@@ -118,12 +118,14 @@
 
             async function loadMentions() {
                 try {
-                    const mentions = await window.API.getMentions();
+                    const response = await fetch('/Mentions/GetMentionsJson');
+                    if (!response.ok) throw new Error('Erreur chargement mentions');
+                    const mentions = await response.json();
                     mentionSelect.innerHTML = '<option value="">Toutes les mentions</option>';
                     mentions.forEach(m => {
                         const option = document.createElement('option');
                         option.value = m.id;
-                        option.textContent = m.nom;
+                        option.textContent = m.nom || m.Nom;
                         mentionSelect.appendChild(option);
                     });
                 } catch (err) {
@@ -146,7 +148,9 @@
                 }
                 hintParcours.textContent = '';
                 try {
-                    const parcours = await window.API.getParcours(mentionId);
+                    const response = await fetch(`/Planning/GetParcours?mentionId=${mentionId}`);
+                    if (!response.ok) throw new Error('Erreur chargement parcours');
+                    const parcours = await response.json();
                     parcours.forEach(p => {
                         const option = document.createElement('option');
                         option.value = p.value;
@@ -171,7 +175,9 @@
                 }
                 hintGroupe.textContent = '';
                 try {
-                    const groupes = await window.API.getGroupes(parcoursId);
+                    const response = await fetch(`/Planning/GetGroupes?parcoursId=${parcoursId}`);
+                    if (!response.ok) throw new Error('Erreur chargement groupes');
+                    const groupes = await response.json();
                     groupes.forEach(g => {
                         const option = document.createElement('option');
                         option.value = g.value;
@@ -206,7 +212,12 @@
                             return;
                         }
                         try {
-                            const seances = await window.API.getSeances({ groupeId: parseInt(groupeId) });
+                            // Utiliser l'action existante de SeancesController ou PlanningController
+                            // On suppose que /Seances/GetSeancesJson?groupeId=... existe
+                            // Pour l'instant on utilise un fetch vers une API (à adapter)
+                            const response = await fetch(`/Seances/GetSeancesJson?groupeId=${groupeId}`);
+                            if (!response.ok) throw new Error('Erreur chargement séances');
+                            const seances = await response.json();
                             const events = seances.map(s => ({
                                 id: s.id,
                                 title: s.title,

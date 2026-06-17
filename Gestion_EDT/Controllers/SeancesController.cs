@@ -309,6 +309,31 @@ namespace Gestion_EDT.Controllers
             return Json(new { hasConflit = false });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetSeancesJson(int? groupeId, int? enseignantId)
+        {
+            var query = _db.Seances.AsQueryable();
+            if (groupeId.HasValue)
+                query = query.Where(s => s.GroupeId == groupeId.Value);
+            if (enseignantId.HasValue)
+                query = query.Where(s => s.EnseignantId == enseignantId.Value);
+
+            var seances = await query
+                .Select(s => new {
+                    s.Id,
+                    title = s.Matiere.intitule,
+                    start = s.date_seance.Add(s.heure_debut),
+                    end = s.date_seance.Add(s.heure_fin),
+                    salle = s.Salle.num_salle,
+                    professeur = s.Enseignant.prenom_enseignant + " " + s.Enseignant.nom_enseignant,
+                    groupe = s.Groupe.nom_groupe,
+                    mention = s.Groupe.Parcours.Cycle.Mention.nom_mention
+                })
+                .ToListAsync();
+
+            return Json(seances);
+        }
+
         // ── GET /Seances/GetEvents ───────────────────────────────────
         // API JSON pour FullCalendar
         [HttpGet]

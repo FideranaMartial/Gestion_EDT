@@ -50,81 +50,82 @@
 
   /* ─── Peuple le select Mention ────────────────────────────── */
   async function loadMentions() {
-    const sel = document.getElementById('filterMention');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Toutes les mentions</option>';
-    try {
-      const response = await fetch('/Mentions/GetAll');
-      if (!response.ok) throw new Error('Erreur chargement mentions');
-      const mentions = await window.API.getMentions();
-      mentions.forEach(m => {
-        const opt = document.createElement('option');
-        opt.value = m.id;
-        opt.textContent = m.nom_mention || m.nom;
-        sel.appendChild(opt);
-      });
-    } catch (err) {
-      window.showToast('Impossible de charger les mentions.', 'error');
-      console.error(err);
-    }
+      const sel = document.getElementById('filterMention');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Toutes les mentions</option>';
+      try {
+          const response = await fetch('/Mentions/GetMentionsJson');
+          if (!response.ok) throw new Error('Erreur chargement mentions');
+          const mentions = await response.json();
+          mentions.forEach(m => {
+              const opt = document.createElement('option');
+              opt.value = m.id || m.Id;
+              opt.textContent = m.nom || m.Nom;
+              sel.appendChild(opt);
+          });
+      } catch (err) {
+          window.showToast('Impossible de charger les mentions.', 'error');
+          console.error(err);
+      }
   }
 
   /* ─── Peuple le select Parcours selon la mention ─────────── */
   async function loadParcours(mentionId) {
-    const sel = document.getElementById('filterParcours');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Tous les parcours</option>';
-    sel.disabled = !mentionId;
+      const sel = document.getElementById('filterParcours');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Tous les parcours</option>';
+      sel.disabled = !mentionId;
 
-    const grpSel = document.getElementById('filterGroupe');
-    if (grpSel) {
-      grpSel.innerHTML = '<option value="">Tous les groupes</option>';
-      grpSel.disabled = true;
-    }
-    filters.parcoursId = null;
-    filters.groupeId = null;
+      const grpSel = document.getElementById('filterGroupe');
+      if (grpSel) {
+          grpSel.innerHTML = '<option value="">Tous les groupes</option>';
+          grpSel.disabled = true;
+      }
+      filters.parcoursId = null;
+      filters.groupeId = null;
 
-    if (!mentionId) return;
-    try {
-      // Utilise l'API de PlanningController ou MentionsController
-      const response = await fetch(`/Planning/GetParcours?mentionId=${mentionId}`);
-      if (!response.ok) throw new Error('Erreur chargement parcours');
-      const parcours = await response.json();
-      parcours.forEach(p => {
-        const opt = document.createElement('option');
-        opt.value = p.value;
-        opt.textContent = p.label;
-        sel.appendChild(opt);
-      });
-    } catch (err) {
-      window.showToast('Impossible de charger les parcours.', 'error');
-      console.error(err);
-    }
+      if (!mentionId) return;
+      try {
+          const response = await fetch(`/Planning/GetParcours?mentionId=${mentionId}`);
+          if (!response.ok) throw new Error('Erreur chargement parcours');
+          const parcours = await response.json();
+          parcours.forEach(p => {
+              const opt = document.createElement('option');
+              opt.value = p.value;
+              opt.textContent = p.label;
+              sel.appendChild(opt);
+          });
+          sel.disabled = false;
+      } catch (err) {
+          window.showToast('Impossible de charger les parcours.', 'error');
+          console.error(err);
+      }
   }
 
   /* ─── Peuple le select Groupe selon le parcours ─────────── */
   async function loadGroupes(parcoursId) {
-    const sel = document.getElementById('filterGroupe');
-    if (!sel) return;
-    sel.innerHTML = '<option value="">Tous les groupes</option>';
-    sel.disabled = !parcoursId;
-    filters.groupeId = null;
+      const sel = document.getElementById('filterGroupe');
+      if (!sel) return;
+      sel.innerHTML = '<option value="">Tous les groupes</option>';
+      sel.disabled = !parcoursId;
+      filters.groupeId = null;
 
-    if (!parcoursId) return;
-    try {
-      const response = await fetch(`/Planning/GetGroupes?parcoursId=${parcoursId}`);
-      if (!response.ok) throw new Error('Erreur chargement groupes');
-      const groupes = await response.json();
-      groupes.forEach(g => {
-        const opt = document.createElement('option');
-        opt.value = g.value;
-        opt.textContent = g.label;
-        sel.appendChild(opt);
-      });
-    } catch (err) {
-      window.showToast('Impossible de charger les groupes.', 'error');
-      console.error(err);
-    }
+      if (!parcoursId) return;
+      try {
+          const response = await fetch(`/Planning/GetGroupes?parcoursId=${parcoursId}`);
+          if (!response.ok) throw new Error('Erreur chargement groupes');
+          const groupes = await response.json();
+          groupes.forEach(g => {
+              const opt = document.createElement('option');
+              opt.value = g.value;
+              opt.textContent = g.label;
+              sel.appendChild(opt);
+          });
+          sel.disabled = false;
+      } catch (err) {
+          window.showToast('Impossible de charger les groupes.', 'error');
+          console.error(err);
+      }
   }
 
   /* ─── Détruit les popovers actifs ────────────────────────── */
@@ -166,22 +167,22 @@
 
       /* ── Source d'événements via API réelle ── */
       events: async function (fetchInfo, successCallback, failureCallback) {
-        try {
-            const seances = await window.API.getSeances({
-                mentionId: filters.mentionId,
-                parcoursId: filters.parcoursId,
-                groupeId: filters.groupeId
-            });
-          
-          const response = await fetch(url);
-          if (!response.ok) throw new Error('Erreur chargement séances');
-          const events = await response.json();
-          successCallback(events);
-        } catch (err) {
-          failureCallback(err);
-          window.showToast('Erreur lors du chargement des séances.', 'error');
-          console.error(err);
-        }
+          try {
+              const groupeId = filters.groupeId;
+              if (!groupeId) {
+                  successCallback([]);
+                  return;
+              }
+              // Utiliser une action existante, par exemple /Seances/GetSeancesJson?groupeId=...
+              const response = await fetch(`/Seances/GetSeancesJson?groupeId=${groupeId}`);
+              if (!response.ok) throw new Error('Erreur chargement séances');
+              const seances = await response.json();
+              successCallback(seances);
+          } catch (err) {
+              failureCallback(err);
+              window.showToast('Erreur lors du chargement des séances.', 'error');
+              console.error(err);
+          }
       },
 
       eventClick: function(info) {
