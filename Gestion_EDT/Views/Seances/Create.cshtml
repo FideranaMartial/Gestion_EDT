@@ -5,9 +5,7 @@
 
 <div class="seance-create-page">
 
-    <!-- ══════════════════════════════════════════════
-         En-tête de page
-    ═══════════════════════════════════════════════ -->
+    <!-- En-tête -->
     <div class="page-header-emit mb-4">
         <div class="page-header-left">
             <a href="/Planning" class="btn-back" title="Retour au planning">
@@ -25,141 +23,105 @@
 
     <div class="create-layout">
 
-        <!-- ══════════════════════════════════════════
-             Formulaire principal
-        ═══════════════════════════════════════════ -->
+        <!-- Formulaire principal -->
         <div class="form-col">
             <div class="card-emit form-card">
 
-                <!-- Alerte conflit (masquée par défaut) -->
-                <div id="conflitAlert" class="conflit-alert" style="display:none;" role="alert" aria-live="assertive">
-                    <div class="conflit-alert-icon">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                    </div>
+                <div id="conflitAlert" class="conflit-alert" style="display:none;">
+                    <div class="conflit-alert-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
                     <div class="conflit-alert-body">
                         <strong id="conflitTitle">Conflit détecté</strong>
                         <p id="conflitMessage" class="mb-0"></p>
                     </div>
                 </div>
 
-                <!-- Indicateur de vérification conflit -->
                 <div id="checkingIndicator" class="checking-indicator" style="display:none;">
-                    <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    <div class="spinner-border spinner-border-sm me-2" role="status"></div>
                     <span>Vérification des conflits en cours…</span>
                 </div>
 
                 <form id="seanceForm" novalidate>
 
-                    <!-- ── Ligne 1 : Date + Libellé ── -->
+                    <!-- Ligne 1 : Date + Libellé -->
                     <div class="form-row-2">
-
                         <div class="field-group">
-                            <label class="field-label" for="date">
-                                <i class="bi bi-calendar3 me-1"></i>Date <span class="required-star">*</span>
-                            </label>
-                            <input type="date"
-                                   id="date"
-                                   name="date"
-                                   class="emit-input"
-                                   required
-                                   autocomplete="off" />
+                            <label class="field-label" for="date">Date <span class="required-star">*</span></label>
+                            <input type="date" id="date" name="date" class="emit-input" required autocomplete="off" />
                             <div class="field-error" id="error-date"></div>
                         </div>
-
                         <div class="field-group">
-                            <label class="field-label" for="libelle">
-                                <i class="bi bi-journal-text me-1"></i>Libellé de la séance <span class="required-star">*</span>
-                            </label>
-                            <input type="text"
-                                   id="libelle"
-                                   name="libelle"
-                                   class="emit-input"
-                                   placeholder="ex. Algorithmique — Cours magistral"
-                                   data-emit-type="alpha"
-                                   required
-                                   autocomplete="off" />
+                            <label class="field-label" for="libelle">Libellé <span class="required-star">*</span></label>
+                            <input type="text" id="libelle" name="libelle" class="emit-input" placeholder="ex. Algorithmique — Cours magistral" required autocomplete="off" />
                             <div class="field-error" id="error-libelle"></div>
                         </div>
-
                     </div>
 
-                    <!-- ── Ligne 2 : Heure début + Heure fin ── -->
+                    <!-- Ligne 2 : Heure début + Heure fin -->
                     <div class="form-row-2">
-
                         <div class="field-group">
-                            <label class="field-label" for="heureDebut">
-                                <i class="bi bi-clock me-1"></i>Heure de début <span class="required-star">*</span>
-                            </label>
-                            <input type="time"
-                                   id="heureDebut"
-                                   name="heureDebut"
-                                   class="emit-input"
-                                   data-emit-type="time-start"
-                                   required
-                                   autocomplete="off" />
+                            <label class="field-label" for="heureDebut">Heure de début <span class="required-star">*</span></label>
+                            <input type="time" id="heureDebut" name="heureDebut" class="emit-input" required autocomplete="off" />
                             <div class="field-error" id="error-heureDebut"></div>
                         </div>
-
                         <div class="field-group">
-                            <label class="field-label" for="heureFin">
-                                <i class="bi bi-clock-history me-1"></i>Heure de fin <span class="required-star">*</span>
-                            </label>
-                            <input type="time"
-                                   id="heureFin"
-                                   name="heureFin"
-                                   class="emit-input"
-                                   data-emit-type="time-end"
-                                   required
-                                   autocomplete="off" />
+                            <label class="field-label" for="heureFin">Heure de fin <span class="required-star">*</span></label>
+                            <input type="time" id="heureFin" name="heureFin" class="emit-input" required autocomplete="off" />
                             <div class="field-error" id="error-heureFin"></div>
                         </div>
-
                     </div>
 
-                    <!-- ── Ligne 3 : Salle + Enseignant ── -->
+                    <!-- Ligne 3 : Groupe + Matière -->
                     <div class="form-row-2">
-
                         <div class="field-group">
-                            <label class="field-label" for="salleId">
-                                <i class="bi bi-door-open-fill me-1"></i>Salle <span class="required-star">*</span>
-                            </label>
+                            <label class="field-label" for="groupeId">Groupe <span class="required-star">*</span></label>
                             <div class="select-wrapper">
-                                <select id="salleId" name="salleId" class="emit-select" required>
-                                    <option value="">— Choisir une salle —</option>
-                                    <option value="1">Salle A101</option>
-                                    <option value="2">Salle A102</option>
-                                    <option value="3">Labo Informatique</option>
-                                    <option value="4">Amphi 200</option>
+                                <select id="groupeId" name="GroupeId" class="emit-select" required>
+                                    <option value="">— Chargement… —</option>
+                                </select>
+                                <i class="bi bi-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="field-error" id="error-groupeId"></div>
+                        </div>
+                        <div class="field-group">
+                            <label class="field-label" for="matiereId">Matière <span class="required-star">*</span></label>
+                            <div class="select-wrapper">
+                                <select id="matiereId" name="MatiereId" class="emit-select" required>
+                                    <option value="">— Chargement… —</option>
+                                </select>
+                                <i class="bi bi-chevron-down select-arrow"></i>
+                            </div>
+                            <div class="field-error" id="error-matiereId"></div>
+                        </div>
+                    </div>
+
+                    <!-- Ligne 4 : Salle + Enseignant -->
+                    <div class="form-row-2">
+                        <div class="field-group">
+                            <label class="field-label" for="salleId">Salle <span class="required-star">*</span></label>
+                            <div class="select-wrapper">
+                                <select id="salleId" name="SalleId" class="emit-select" required>
+                                    <option value="">— Chargement… —</option>
                                 </select>
                                 <i class="bi bi-chevron-down select-arrow"></i>
                             </div>
                             <div class="field-error" id="error-salleId"></div>
                         </div>
-
                         <div class="field-group">
-                            <label class="field-label" for="enseignantId">
-                                <i class="bi bi-person-badge-fill me-1"></i>Enseignant <span class="required-star">*</span>
-                            </label>
+                            <label class="field-label" for="enseignantId">Enseignant <span class="required-star">*</span></label>
                             <div class="select-wrapper">
-                                <select id="enseignantId" name="enseignantId" class="emit-select" required>
+                                <select id="enseignantId" name="EnseignantId" class="emit-select" required>
                                     <option value="">— Chargement… —</option>
                                 </select>
                                 <i class="bi bi-chevron-down select-arrow"></i>
                             </div>
                             <div class="field-error" id="error-enseignantId"></div>
                         </div>
-
                     </div>
 
-                    <!-- ── Actions formulaire ── -->
+                    <!-- Actions -->
                     <div class="form-actions">
-                        <a href="/Planning" class="btn-emit-ghost">
-                            <i class="bi bi-x-lg me-2"></i>Annuler
-                        </a>
-                        <button type="button"
-                                id="btnSubmit"
-                                class="btn-emit-primary"
-                                onclick="handleSubmit()">
+                        <a href="/Planning" class="btn-emit-ghost"><i class="bi bi-x-lg me-2"></i>Annuler</a>
+                        <button type="button" id="btnSubmit" class="btn-emit-primary" onclick="handleSubmit()">
                             <i class="bi bi-check-lg me-2"></i>Créer la séance
                         </button>
                     </div>
@@ -168,58 +130,27 @@
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════════
-             Panneau d'aide latéral
-        ═══════════════════════════════════════════ -->
+        <!-- Panneau d'aide -->
         <div class="info-col">
             <div class="card-emit info-card">
-                <div class="info-card-header">
-                    <i class="bi bi-info-circle-fill me-2" style="color:var(--accent);"></i>
-                    <span>Rappels</span>
-                </div>
+                <div class="info-card-header"><i class="bi bi-info-circle-fill me-2"></i>Rappels</div>
                 <ul class="info-list">
-                    <li>
-                        <i class="bi bi-clock-fill"></i>
-                        <span>Les créneaux sont disponibles de <strong>7h30</strong> à <strong>18h30</strong>.</span>
-                    </li>
-                    <li>
-                        <i class="bi bi-exclamation-circle-fill" style="color:var(--warning);"></i>
-                        <span>Un conflit sera détecté automatiquement si la salle ou l'enseignant est déjà occupé.</span>
-                    </li>
-                    <li>
-                        <i class="bi bi-calendar-check-fill" style="color:var(--success);"></i>
-                        <span>Le dimanche est exclu du planning.</span>
-                    </li>
-                    <li>
-                        <i class="bi bi-shield-check-fill" style="color:var(--accent);"></i>
-                        <span>La soumission est bloquée tant qu'un conflit est détecté.</span>
-                    </li>
+                    <li><i class="bi bi-clock-fill"></i><span>Créneaux de <strong>7h30</strong> à <strong>18h30</strong>.</span></li>
+                    <li><i class="bi bi-exclamation-circle-fill" style="color:var(--warning);"></i><span>Conflit automatique (salle/enseignant/groupe).</span></li>
+                    <li><i class="bi bi-calendar-check-fill" style="color:var(--success);"></i><span>Dimanche exclu.</span></li>
+                    <li><i class="bi bi-shield-check-fill" style="color:var(--accent);"></i><span>Soumission bloquée en cas de conflit.</span></li>
                 </ul>
             </div>
 
-            <!-- Récap dynamique -->
             <div class="card-emit recap-card" id="recapCard" style="display:none;">
-                <div class="info-card-header">
-                    <i class="bi bi-clipboard-check-fill me-2" style="color:var(--success);"></i>
-                    <span>Récapitulatif</span>
-                </div>
+                <div class="info-card-header"><i class="bi bi-clipboard-check-fill me-2"></i>Récapitulatif</div>
                 <div class="recap-grid">
-                    <div class="recap-row">
-                        <span class="recap-label"><i class="bi bi-calendar3 me-1"></i>Date</span>
-                        <span class="recap-value" id="recapDate">—</span>
-                    </div>
-                    <div class="recap-row">
-                        <span class="recap-label"><i class="bi bi-clock me-1"></i>Horaire</span>
-                        <span class="recap-value" id="recapHoraire">—</span>
-                    </div>
-                    <div class="recap-row">
-                        <span class="recap-label"><i class="bi bi-door-open me-1"></i>Salle</span>
-                        <span class="recap-value" id="recapSalle">—</span>
-                    </div>
-                    <div class="recap-row">
-                        <span class="recap-label"><i class="bi bi-person me-1"></i>Enseignant</span>
-                        <span class="recap-value" id="recapEnseignant">—</span>
-                    </div>
+                    <div class="recap-row"><span class="recap-label">Date</span><span class="recap-value" id="recapDate">—</span></div>
+                    <div class="recap-row"><span class="recap-label">Horaire</span><span class="recap-value" id="recapHoraire">—</span></div>
+                    <div class="recap-row"><span class="recap-label">Groupe</span><span class="recap-value" id="recapGroupe">—</span></div>
+                    <div class="recap-row"><span class="recap-label">Matière</span><span class="recap-value" id="recapMatiere">—</span></div>
+                    <div class="recap-row"><span class="recap-label">Salle</span><span class="recap-value" id="recapSalle">—</span></div>
+                    <div class="recap-row"><span class="recap-label">Enseignant</span><span class="recap-value" id="recapEnseignant">—</span></div>
                 </div>
             </div>
         </div>
@@ -450,27 +381,19 @@
 (function () {
     'use strict';
 
-    /* ── Salle labels ── */
-    const SALLE_LABELS = {
-        '1': 'Salle A101',
-        '2': 'Salle A102',
-        '3': 'Labo Informatique',
-        '4': 'Amphi 200',
-    };
-
-    /* ── État conflit ── */
     let hasConflit = false;
+    let sallesData = [];
+    let groupesData = [];
+    let matieresData = [];
 
-    /* ── Refs DOM ── */
-    const form          = document.getElementById('seanceForm');
-    const btnSubmit     = document.getElementById('btnSubmit');
-    const conflitAlert  = document.getElementById('conflitAlert');
-    const conflitTitle  = document.getElementById('conflitTitle');
-    const conflitMsg    = document.getElementById('conflitMessage');
-    const checkingInd   = document.getElementById('checkingIndicator');
-    const recapCard     = document.getElementById('recapCard');
+    const form = document.getElementById('seanceForm');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const conflitAlert = document.getElementById('conflitAlert');
+    const conflitTitle = document.getElementById('conflitTitle');
+    const conflitMsg = document.getElementById('conflitMessage');
+    const checkingInd = document.getElementById('checkingIndicator');
+    const recapCard = document.getElementById('recapCard');
 
-    /* Utilitaire : debounce */
     function debounce(fn, delay) {
         let timer;
         return function (...args) {
@@ -479,11 +402,79 @@
         };
     }
 
-    /* Chargement des enseignants via MockAPI */
+    // ── Chargement des salles ──
+    async function loadSalles() {
+        const sel = document.getElementById('salleId');
+        try {
+            const response = await fetch('/Seances/GetSalles');
+            if (!response.ok) throw new Error('Erreur chargement');
+            const list = await response.json();
+            sallesData = list;
+            sel.innerHTML = '<option value="">— Choisir une salle —</option>';
+            list.forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s.id;
+                opt.textContent = `${s.nom} (Capacité: ${s.capacite})`;
+                opt.dataset.capacite = s.capacite;
+                sel.appendChild(opt);
+            });
+        } catch {
+            sel.innerHTML = '<option value="">— Choisir une salle —</option>';
+            window.showToast('Impossible de charger les salles.', 'warning');
+        }
+    }
+
+    // ── Chargement des groupes ──
+    async function loadGroupes() {
+        const sel = document.getElementById('groupeId');
+        try {
+            const response = await fetch('/Seances/GetGroupes');
+            if (!response.ok) throw new Error('Erreur chargement');
+            const list = await response.json();
+            groupesData = list;
+            sel.innerHTML = '<option value="">— Choisir un groupe —</option>';
+            list.sort((a, b) => a.nom.localeCompare(b.nom));
+            list.forEach(g => {
+                const opt = document.createElement('option');
+                opt.value = g.id;
+                opt.textContent = `${g.nom} (${g.nbEtudiant} étudiants)`;
+                opt.dataset.nbEtudiant = g.nbEtudiant;
+                sel.appendChild(opt);
+            });
+        } catch {
+            sel.innerHTML = '<option value="">— Choisir un groupe —</option>';
+            window.showToast('Impossible de charger les groupes.', 'warning');
+        }
+    }
+
+    // ── Chargement des matières ──
+    async function loadMatieres() {
+        const sel = document.getElementById('matiereId');
+        try {
+            const response = await fetch('/Seances/GetMatieres');
+            if (!response.ok) throw new Error('Erreur chargement');
+            const list = await response.json();
+            matieresData = list;
+            sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+            list.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id;
+                opt.textContent = m.intitule;
+                sel.appendChild(opt);
+            });
+        } catch {
+            sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+            window.showToast('Impossible de charger les matières.', 'warning');
+        }
+    }
+
+    // ── Chargement des enseignants ──
     async function loadEnseignants() {
         const sel = document.getElementById('enseignantId');
         try {
-                    const list = await window.API.getEnseignants();
+            const response = await fetch('/Seances/GetEnseignants');
+            if (!response.ok) throw new Error('Erreur chargement');
+            const list = await response.json();
             sel.innerHTML = '<option value="">— Choisir un enseignant —</option>';
             list.forEach(e => {
                 const opt = document.createElement('option');
@@ -497,36 +488,57 @@
         }
     }
 
-    /* Construction du payload de vérification conflit */
-    function buildConflitPayload() {
-        const date        = document.getElementById('date').value;
-        const heureDebut  = document.getElementById('heureDebut').value;
-        const heureFin    = document.getElementById('heureFin').value;
-        const salleId     = document.getElementById('salleId').value;
-        const enseignantId = document.getElementById('enseignantId').value;
+    // ── Vérification de capacité ──
+    function verifierCapacite() {
+        const salleId = document.getElementById('salleId').value;
+        const groupeId = document.getElementById('groupeId').value;
+        if (!salleId || !groupeId) return true;
 
-        if (!date || !heureDebut || !heureFin || !salleId || !enseignantId) return null;
+        const salle = sallesData.find(s => s.id == salleId);
+        const groupe = groupesData.find(g => g.id == groupeId);
+        if (!salle || !groupe) return true;
 
-        return {
-            date,
-            heureDebut,
-            heureFin,
-            salleId: parseInt(salleId, 10),
-            enseignantId: parseInt(enseignantId, 10),
-            seanceId: null,
-        };
+        if (groupe.nbEtudiant > salle.capacite) {
+            window.showToast(
+                `⚠ La salle "${salle.nom}" a une capacité de ${salle.capacite} places, mais le groupe "${groupe.nom}" compte ${groupe.nbEtudiant} étudiants.`,
+                'warning'
+            );
+            return false;
+        }
+        return true;
     }
 
-    /* Affichage / masquage de l'alerte conflit*/
+    // ── Construction du payload de vérification conflit ──
+    function buildConflitPayload() {
+        const date = document.getElementById('date').value;
+        const debut = document.getElementById('heureDebut').value;
+        const fin = document.getElementById('heureFin').value;
+        const salleId = document.getElementById('salleId').value;
+        const enseignantId = document.getElementById('enseignantId').value;
+        const groupeId = document.getElementById('groupeId').value;
+
+        if (!date || !debut || !fin || !salleId || !enseignantId || !groupeId) return null;
+
+        const params = new URLSearchParams({
+            date: date,
+            heureDebut: debut,
+            heureFin: fin,
+            salleId: salleId,
+            enseignantId: enseignantId,
+            groupeId: groupeId
+        });
+        return params;
+    }
+
     function showConflitAlert(message, type) {
         hasConflit = true;
         const typeLabel = {
             salle: 'Conflit de salle',
-            prof:  'Conflit enseignant',
+            prof: 'Conflit enseignant',
             groupe: 'Conflit de groupe',
         }[type] || 'Conflit détecté';
         conflitTitle.textContent = typeLabel;
-        conflitMsg.textContent   = message;
+        conflitMsg.textContent = message;
         conflitAlert.style.display = 'flex';
         btnSubmit.disabled = true;
         btnSubmit.style.opacity = '0.5';
@@ -539,65 +551,71 @@
         btnSubmit.style.opacity = '';
     }
 
-    /* Vérification conflit asynchrone*/
     const checkConflit = debounce(async function () {
-        const payload = buildConflitPayload();
-        if (!payload) {
+        const params = buildConflitPayload();
+        if (!params) {
             hideConflitAlert();
             return;
         }
 
         checkingInd.style.display = 'flex';
         try {
-            const result = await window.API.checkConflit(payload);
+            const response = await fetch('/Seances/CheckConflit?' + params.toString());
+            if (!response.ok) throw new Error('Erreur vérification');
+            const result = await response.json();
             if (result.hasConflit) {
                 showConflitAlert(result.message, result.type);
             } else {
                 hideConflitAlert();
             }
-        } catch {
-            /* En cas d'erreur réseau on ne bloque pas la soumission */
+        } catch (err) {
+            console.error(err);
             hideConflitAlert();
         } finally {
             checkingInd.style.display = 'none';
         }
     }, 500);
 
-    /* Mise à jour du récapitulatif latéral */
+    // ── Mise à jour du récapitulatif ──
     function updateRecap() {
-        const date         = document.getElementById('date').value;
-        const heureDebut   = document.getElementById('heureDebut').value;
-        const heureFin     = document.getElementById('heureFin').value;
-        const salleId      = document.getElementById('salleId').value;
+        const date = document.getElementById('date').value;
+        const debut = document.getElementById('heureDebut').value;
+        const fin = document.getElementById('heureFin').value;
+        const salleId = document.getElementById('salleId').value;
         const enseignantId = document.getElementById('enseignantId').value;
-        const enseignantSel = document.getElementById('enseignantId');
-        const enseignantLabel = enseignantId
-            ? enseignantSel.options[enseignantSel.selectedIndex]?.textContent
-            : null;
+        const groupeId = document.getElementById('groupeId').value;
+        const matiereId = document.getElementById('matiereId').value;
 
-        const anyFilled = date || heureDebut || heureFin || salleId || enseignantId;
+        const salleLabel = salleId ? (document.getElementById('salleId').options[document.getElementById('salleId').selectedIndex]?.textContent || '—') : '—';
+        const enseignantLabel = enseignantId ? (document.getElementById('enseignantId').options[document.getElementById('enseignantId').selectedIndex]?.textContent || '—') : '—';
+        const groupeLabel = groupeId ? (document.getElementById('groupeId').options[document.getElementById('groupeId').selectedIndex]?.textContent || '—') : '—';
+        const matiereLabel = matiereId ? (document.getElementById('matiereId').options[document.getElementById('matiereId').selectedIndex]?.textContent || '—') : '—';
+
+        const anyFilled = date || debut || fin || salleId || enseignantId || groupeId || matiereId;
         recapCard.style.display = anyFilled ? 'block' : 'none';
 
         document.getElementById('recapDate').textContent =
-            date ? new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'long', year:'numeric' }) : '—';
+            date ? new Date(date + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' }) : '—';
         document.getElementById('recapHoraire').textContent =
-            (heureDebut && heureFin) ? `${heureDebut} → ${heureFin}` : (heureDebut || '—');
-        document.getElementById('recapSalle').textContent =
-            salleId ? (SALLE_LABELS[salleId] || '—') : '—';
-        document.getElementById('recapEnseignant').textContent =
-            enseignantLabel && enseignantLabel !== '— Choisir un enseignant —'
-                ? enseignantLabel : '—';
+            (debut && fin) ? `${debut} → ${fin}` : (debut || '—');
+        document.getElementById('recapGroupe').textContent = groupeLabel;
+        document.getElementById('recapMatiere').textContent = matiereLabel;
+        document.getElementById('recapSalle').textContent = salleLabel;
+        document.getElementById('recapEnseignant').textContent = enseignantLabel !== '— Choisir un enseignant —' ? enseignantLabel : '—';
     }
 
-    /* Listeners sur les champs déclencheurs*/
-    ['date', 'heureDebut', 'heureFin', 'salleId', 'enseignantId'].forEach(id => {
+    // ── Écouteurs ──
+    ['date', 'heureDebut', 'heureFin', 'salleId', 'enseignantId', 'groupeId', 'matiereId'].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
         el.addEventListener('change', () => {
             updateRecap();
             checkConflit();
+            // Vérification de capacité après changement de salle ou groupe
+            if (id === 'salleId' || id === 'groupeId') {
+                verifierCapacite();
+            }
         });
-        /* Pour les inputs texte/time on écoute aussi 'input' */
         if (el.tagName === 'INPUT') {
             el.addEventListener('input', () => {
                 updateRecap();
@@ -606,56 +624,96 @@
         }
     });
 
-    /* Soumission du formulaire (exposée globalement)*/
-    window.handleSubmit = function () {
-        /* 1. Vérification ValidationEngine */
-        if (window.ValidationEngine && !window.ValidationEngine.validate(form)) {
+    // ── Soumission ──
+    window.handleSubmit = async function () {
+        if (window.ValidationEngine && !window.ValidationEngine.validateForm(form).valid) {
             window.showToast('Veuillez corriger les erreurs du formulaire.', 'warning');
             return;
         }
-
-        /* 2. Blocage si conflit actif */
         if (hasConflit) {
             window.showToast('Impossible de créer la séance : un conflit a été détecté.', 'error');
             return;
         }
+        if (!verifierCapacite()) {
+            window.showToast('Capacité de la salle insuffisante pour ce groupe.', 'error');
+            return;
+        }
 
-        /* 3. Construction du payload */
-        const payload = {
-            date:         document.getElementById('date').value,
-            heureDebut:   document.getElementById('heureDebut').value,
-            heureFin:     document.getElementById('heureFin').value,
-            salleId:      parseInt(document.getElementById('salleId').value, 10),
-            enseignantId: parseInt(document.getElementById('enseignantId').value, 10),
-            libelle:      document.getElementById('libelle').value.trim(),
-            token:        window.getAntiForgeryToken(),
-        };
+        const formData = new FormData();
+        formData.append('date_seance', document.getElementById('date').value);
+        formData.append('heure_debut', document.getElementById('heureDebut').value);
+        formData.append('heure_fin', document.getElementById('heureFin').value);
+        formData.append('MatiereId', document.getElementById('matiereId').value);
+        formData.append('GroupeId', document.getElementById('groupeId').value);
+        formData.append('SalleId', document.getElementById('salleId').value);
+        formData.append('EnseignantId', document.getElementById('enseignantId').value);
 
-        /* 4. Appel via fetchWithSpinner */
-        window.fetchWithSpinner(
-            btnSubmit,
-            await window.API.createSeance(payload);
-        ).then(result => {
-            if (result && result.success) {
+        // Calcul de la semaine
+        const dateVal = document.getElementById('date').value;
+        if (dateVal) {
+            const dateObj = new Date(dateVal + 'T00:00:00');
+            const weekNumber = getISOWeek(dateObj);
+            formData.append('semaine', weekNumber);
+        }
+
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        if (!token) {
+            window.showToast('Token CSRF manquant.', 'error');
+            return;
+        }
+
+        try {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Création...';
+
+            const response = await fetch('/Seances/Create', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+
+            if (response.ok) {
                 window.showToast('Séance créée avec succès !', 'success');
                 setTimeout(() => { window.location.href = '/Planning'; }, 900);
             } else {
-                window.showToast(
-                    (result && result.message) || 'Une erreur est survenue.',
-                    'error'
-                );
+                const text = await response.text();
+                let errorMsg = 'Une erreur est survenue.';
+                try {
+                    const json = JSON.parse(text);
+                    if (json.message) errorMsg = json.message;
+                } catch {
+                    if (text.includes('Conflit')) errorMsg = text;
+                }
+                window.showToast(errorMsg, 'error');
             }
-        }).catch(() => {
+        } catch (err) {
             window.showToast('Erreur réseau. Veuillez réessayer.', 'error');
-        });
+            console.error(err);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="bi bi-check-lg me-2"></i>Créer la séance';
+        }
     };
 
-    /* Initialisation*/
+    // ── Fonction ISO week ──
+    function getISOWeek(date) {
+        const d = new Date(date);
+        d.setHours(0, 0, 0, 0);
+        const thursday = new Date(d);
+        thursday.setDate(d.getDate() + (3 - (d.getDay() + 6) % 7));
+        const firstThursday = new Date(thursday.getFullYear(), 0, 4);
+        return 1 + Math.round(((thursday - firstThursday) / 86400000 - 3 + (firstThursday.getDay() + 6) % 7) / 7);
+    }
+
+    // ── Initialisation ──
     document.addEventListener('DOMContentLoaded', function () {
+        loadSalles();
+        loadGroupes();
+        loadMatieres();
         loadEnseignants();
-        /* Date minimale = aujourd'hui */
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('date').min = today;
+        updateRecap();
     });
 
 })();

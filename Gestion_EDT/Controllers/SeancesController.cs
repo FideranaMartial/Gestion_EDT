@@ -82,62 +82,69 @@ namespace Gestion_EDT.Controllers
             return View(new Seance { date_seance = DateTime.Today });
         }
 
-        // ── POST /Seances/Create ─────────────────────────────────────
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Seance seance)
-        {
-            // RG29 — date >= aujourd'hui
-            if (seance.date_seance < DateTime.Today)
-                ModelState.AddModelError(nameof(seance.date_seance),
-                    "La date doit être égale ou postérieure à aujourd'hui. (RG29)");
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> Create(Seance seance)
+{
+    // RG29
+    if (seance.date_seance < DateTime.Today)
+        ModelState.AddModelError(nameof(seance.date_seance), "La date doit être égale ou postérieure à aujourd'hui.");
 
-            // RG30 — heure_fin > heure_debut
-            if (seance.heure_fin <= seance.heure_debut)
-                ModelState.AddModelError(nameof(seance.heure_fin),
-                    "L'heure de fin doit être supérieure à l'heure de début. (RG30)");
+    // RG30
+    if (seance.heure_fin <= seance.heure_debut)
+        ModelState.AddModelError(nameof(seance.heure_fin), "L'heure de fin doit être supérieure à l'heure de début.");
 
-            // RG31 — semaine cohérente avec date
-            int semaineAttendue = System.Globalization.ISOWeek
-                .GetWeekOfYear(seance.date_seance);
-            if (seance.semaine != semaineAttendue)
-                ModelState.AddModelError(nameof(seance.semaine),
-                    $"La semaine {seance.semaine} ne correspond pas à la date (attendu : {semaineAttendue}). (RG31)");
+    // Calcul automatique de la semaine
+    if (seance.date_seance != default)
+    {
+        seance.semaine = System.Globalization.ISOWeek.GetWeekOfYear(seance.date_seance);
+    }
 
-            if (!ModelState.IsValid)
-            {
-                await ChargerSelectLists(seance);
-                return View(seance);
-            }
+    // On retire la validation de semaine car elle est calculée automatiquement
+    ModelState.Remove(nameof(seance.semaine));
 
-            // RG34 — triple détection de conflits
-            var conflit = await DetecterConflit(seance);
-            if (conflit != null)
-            {
-                ModelState.AddModelError("", conflit);
-                await ChargerSelectLists(seance);
-                return View(seance);
-            }
+    if (!ModelState.IsValid)
+    {
+        await ChargerSelectLists(seance);
+        // Retourner une vue avec les erreurs ou un JSON d'erreur selon le type de requête
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+            return BadRequest(ModelState);
+        return View(seance);
+    }
 
-            // RG35 — transaction atomique
-            using var transaction = await _db.Database.BeginTransactionAsync();
-            try
-            {
-                _db.Seances.Add(seance);
-                await _db.SaveChangesAsync();
-                await transaction.CommitAsync();
+    var conflit = await DetecterConflit(seance);
+    if (conflit != null)
+    {
+        ModelState.AddModelError("", conflit);
+        await ChargerSelectLists(seance);
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+            return BadRequest(new { message = conflit });
+        return View(seance);
+    }
 
-                TempData["Success"] = "Séance planifiée avec succès.";
-                return RedirectToAction(nameof(Index));
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                ModelState.AddModelError("", "Erreur lors de l'enregistrement. Veuillez réessayer.");
-                await ChargerSelectLists(seance);
-                return View(seance);
-            }
-        }
+    using var transaction = await _db.Database.BeginTransactionAsync();
+    try
+    {
+        _db.Seances.Add(seance);
+        await _db.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+            return Json(new { success = true, message = "Séance planifiée avec succès." });
+
+        TempData["Success"] = "Séance planifiée avec succès.";
+        return RedirectToAction(nameof(Index));
+    }
+    catch (Exception ex)
+    {
+        await transaction.RollbackAsync();
+        ModelState.AddModelError("", "Erreur lors de l'enregistrement.");
+        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+            return BadRequest(new { message = ex.Message });
+        await ChargerSelectLists(seance);
+        return View(seance);
+    }
+}
 
         // ── GET /Seances/Edit/{id} ───────────────────────────────────
         public async Task<IActionResult> Edit(int id)
@@ -453,6 +460,25 @@ namespace Gestion_EDT.Controllers
         //  MÉTHODES PRIVÉES
         // ═════════════════════════════════════════════════════════════
 
+        // ── GET /Seances/GetEnseignants ──────────────────────────────
+        // API JSON pour alimenter le select Enseignant dans Create.cshtml
+        [HttpGet]
+        public async Task<IActionResult> GetEnseignants()
+        {
+            var enseignants = await _db.Enseignants
+                .OrderBy(e => e.nom_enseignant)
+                .Select(e => new
+                {
+                    id = e.Id,
+                    nom = e.nom_enseignant,
+                    prenom = e.prenom_enseignant,
+                    grade = e.grade
+                })
+                .ToListAsync();
+            return Json(enseignants);
+        }
+
+
         /// <summary>
         /// RG34 — Détecte les conflits enseignant, salle et groupe.
         /// Retourne null si aucun conflit, sinon le message.
@@ -530,5 +556,23 @@ namespace Gestion_EDT.Controllers
                     .ToListAsync(),
                 "Id", "nom_groupe", seance?.GroupeId);
         }
+
+        // ── GET /Seances/GetMatieres ──────────────────────────────
+        // API JSON — alimente le <select> Matière dans Create.cshtml
+        [HttpGet]
+        public async Task<IActionResult> GetMatieres()
+        {
+            var matieres = await _db.Matieres
+                .OrderBy(m => m.intitule)
+                .Select(m => new
+                {
+                    id = m.Id,
+                    intitule = m.intitule,
+                    code = m.code_mat
+                })
+                .ToListAsync();
+            return Json(matieres);
+        }
+
     }
 }
