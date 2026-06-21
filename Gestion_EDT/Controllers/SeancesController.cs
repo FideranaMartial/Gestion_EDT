@@ -83,68 +83,122 @@ namespace Gestion_EDT.Controllers
         }
 
         [HttpPost]
-[ValidateAntiForgeryToken]
-public async Task<IActionResult> Create(Seance seance)
-{
-    // RG29
-    if (seance.date_seance < DateTime.Today)
-        ModelState.AddModelError(nameof(seance.date_seance), "La date doit être égale ou postérieure à aujourd'hui.");
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> getMatiere(Seance seance)
+        {
+            // RG29
+            if (seance.date_seance < DateTime.Today)
+                ModelState.AddModelError(nameof(seance.date_seance), "La date doit être égale ou postérieure à aujourd'hui.");
 
-    // RG30
-    if (seance.heure_fin <= seance.heure_debut)
-        ModelState.AddModelError(nameof(seance.heure_fin), "L'heure de fin doit être supérieure à l'heure de début.");
+            // RG30
+            if (seance.heure_fin <= seance.heure_debut)
+                ModelState.AddModelError(nameof(seance.heure_fin), "L'heure de fin doit être supérieure à l'heure de début.");
 
-    // Calcul automatique de la semaine
-    if (seance.date_seance != default)
-    {
-        seance.semaine = System.Globalization.ISOWeek.GetWeekOfYear(seance.date_seance);
-    }
+            // Calcul automatique de la semaine
+            if (seance.date_seance != default)
+            {
+                seance.semaine = System.Globalization.ISOWeek.GetWeekOfYear(seance.date_seance);
+            }
 
-    // On retire la validation de semaine car elle est calculée automatiquement
-    ModelState.Remove(nameof(seance.semaine));
+            // On retire la validation de semaine car elle est calculée automatiquement
+            ModelState.Remove(nameof(seance.semaine));
 
-    if (!ModelState.IsValid)
-    {
-        await ChargerSelectLists(seance);
-        // Retourner une vue avec les erreurs ou un JSON d'erreur selon le type de requête
-        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
-            return BadRequest(ModelState);
-        return View(seance);
-    }
+            if (!ModelState.IsValid)
+            {
+                await ChargerSelectLists(seance);
+                // Retourner une vue avec les erreurs ou un JSON d'erreur selon le type de requête
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+                    return BadRequest(ModelState);
+                return View(seance);
+            }
 
-    var conflit = await DetecterConflit(seance);
-    if (conflit != null)
-    {
-        ModelState.AddModelError("", conflit);
-        await ChargerSelectLists(seance);
-        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
-            return BadRequest(new { message = conflit });
-        return View(seance);
-    }
+            var conflit = await DetecterConflit(seance);
+            if (conflit != null)
+            {
+                ModelState.AddModelError("", conflit);
+                await ChargerSelectLists(seance);
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+                    return BadRequest(new { message = conflit });
+                return View(seance);
+            }
 
-    using var transaction = await _db.Database.BeginTransactionAsync();
-    try
-    {
-        _db.Seances.Add(seance);
-        await _db.SaveChangesAsync();
-        await transaction.CommitAsync();
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                _db.Seances.Add(seance);
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
-            return Json(new { success = true, message = "Séance planifiée avec succès." });
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+                    return Json(new { success = true, message = "Séance planifiée avec succès." });
 
-        TempData["Success"] = "Séance planifiée avec succès.";
-        return RedirectToAction(nameof(Index));
-    }
-    catch (Exception ex)
-    {
-        await transaction.RollbackAsync();
-        ModelState.AddModelError("", "Erreur lors de l'enregistrement.");
-        if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
-            return BadRequest(new { message = ex.Message });
-        await ChargerSelectLists(seance);
-        return View(seance);
-    }
-}
+                TempData["Success"] = "Séance planifiée avec succès.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", "Erreur lors de l'enregistrement.");
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.ContentType?.Contains("application/json") == true)
+                    return BadRequest(new { message = ex.Message });
+                await ChargerSelectLists(seance);
+                return View(seance);
+            }
+        }
+
+                [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create([FromForm] Seance seance)
+        {
+            // RG29
+            if (seance.date_seance < DateTime.Today)
+                ModelState.AddModelError(nameof(seance.date_seance), "La date doit être égale ou postérieure à aujourd'hui.");
+
+            // RG30
+            if (seance.heure_fin <= seance.heure_debut)
+                ModelState.AddModelError(nameof(seance.heure_fin), "L'heure de fin doit être supérieure à l'heure de début.");
+
+            // Calcul de la semaine
+            if (seance.date_seance != default)
+            {
+                seance.semaine = System.Globalization.ISOWeek.GetWeekOfYear(seance.date_seance);
+            }
+            ModelState.Remove(nameof(seance.semaine));
+
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
+                return BadRequest(new { errors });
+            }
+
+            var conflit = await DetecterConflit(seance);
+            if (conflit != null)
+                return BadRequest(new { message = conflit });
+
+            // Vérification capacité salle
+            var salle = await _db.Salles.FindAsync(seance.SalleId);
+            var groupe = await _db.Groupes.FindAsync(seance.GroupeId);
+            if (groupe != null && salle != null && groupe.nb_etudiant > salle.capacite)
+            {
+                return BadRequest(new { message = $"La salle {salle.num_salle} (capacité {salle.capacite}) ne peut pas accueillir le groupe {groupe.nom_groupe} ({groupe.nb_etudiant} étudiants)." });
+            }
+
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                _db.Seances.Add(seance);
+                await _db.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(new { success = true, message = "Séance créée avec succès." });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return StatusCode(500, new { message = "Erreur interne : " + ex.Message });
+            }
+        }
 
         // ── GET /Seances/Edit/{id} ───────────────────────────────────
         public async Task<IActionResult> Edit(int id)
@@ -526,7 +580,7 @@ public async Task<IActionResult> Create(Seance seance)
         }
 
         /// <summary>
-        /// Charge les SelectList nécessaires à la vue Create/Edit.
+        /// Charge les SelectList nécessaires à la vue groupe/Edit.
         /// </summary>
         private async Task ChargerSelectLists(Seance? seance = null)
         {
@@ -558,7 +612,7 @@ public async Task<IActionResult> Create(Seance seance)
         }
 
         // ── GET /Seances/GetMatieres ──────────────────────────────
-        // API JSON — alimente le <select> Matière dans Create.cshtml
+        // API JSON — alimente le <select> Matière dans get.cshtml
         [HttpGet]
         public async Task<IActionResult> GetMatieres()
         {
@@ -574,5 +628,27 @@ public async Task<IActionResult> Create(Seance seance)
             return Json(matieres);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetMatieresByGroupe(int groupeId)
+        {
+            // Récupérer le ParcoursId du groupe
+            var parcoursId = await _db.Groupes
+                .Where(g => g.Id == groupeId)
+                .Select(g => g.ParcoursId)
+                .FirstOrDefaultAsync();
+
+            if (parcoursId == 0)
+                return Json(new List<object>()); // Aucun parcours associé
+
+            // Filtrer les matières via la table Parcours_Matieres
+            var matieres = await _db.ParcoursMatieres
+                .Where(pm => pm.ParcoursId == parcoursId)
+                .Include(pm => pm.Matiere)
+                .OrderBy(pm => pm.Matiere.intitule)
+                .Select(pm => new { pm.Matiere.Id, pm.Matiere.intitule, pm.Matiere.code_mat })
+                .ToListAsync();
+
+            return Json(matieres);
+        }
     }
 }

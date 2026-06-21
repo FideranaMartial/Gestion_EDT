@@ -8,5 +8,7 @@
         public int nb_heure { get; set; }
 
         public ICollection<Seance> Seances { get; set; }
+        public ICollection<Parcours> Parcours { get; set; } = new List<Parcours>();
+        public ICollection<ParcoursMatiere> ParcoursMatieres { get; set; } = new List<ParcoursMatiere>();
 }
 }

@@ -9,5 +9,7 @@
         public Cycle Cycle { get; set; }
 
         public ICollection<Groupe> Groupes { get; set; }
+        public ICollection<Matiere> Matieres { get; set; } = new List<Matiere>();
+        public ICollection<ParcoursMatiere> ParcoursMatieres { get; set; } = new List<ParcoursMatiere>();
 }
 }

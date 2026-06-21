@@ -447,26 +447,50 @@
         }
     }
 
-    // ── Chargement des matières ──
-    async function loadMatieres() {
-        const sel = document.getElementById('matiereId');
-        try {
-            const response = await fetch('/Seances/GetMatieres');
-            if (!response.ok) throw new Error('Erreur chargement');
-            const list = await response.json();
-            matieresData = list;
-            sel.innerHTML = '<option value="">— Choisir une matière —</option>';
-            list.forEach(m => {
-                const opt = document.createElement('option');
-                opt.value = m.id;
-                opt.textContent = m.intitule;
-                sel.appendChild(opt);
-            });
-        } catch {
-            sel.innerHTML = '<option value="">— Choisir une matière —</option>';
-            window.showToast('Impossible de charger les matières.', 'warning');
+        // ── Chargement des matières (toutes) ──
+        async function loadMatieres() {
+            const sel = document.getElementById('matiereId');
+            try {
+                const response = await fetch('/Seances/GetMatieres');
+                if (!response.ok) throw new Error('Erreur chargement');
+                const list = await response.json();
+                sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+                list.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.intitule;
+                    sel.appendChild(opt);
+                });
+            } catch {
+                sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+                window.showToast('Impossible de charger les matières.', 'warning');
+            }
         }
-    }
+
+        // ── Chargement des matières par groupe ──
+        async function loadMatieresByGroupe(groupeId) {
+            if (!groupeId) {
+                // Si aucun groupe sélectionné, charger toutes les matières
+                await loadMatieres();
+                return;
+            }
+            const sel = document.getElementById('matiereId');
+            try {
+                const response = await fetch(`/Seances/GetMatieresByGroupe?groupeId=${groupeId}`);
+                if (!response.ok) throw new Error('Erreur chargement');
+                const list = await response.json();
+                sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+                list.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.intitule;
+                    sel.appendChild(opt);
+                });
+            } catch {
+                sel.innerHTML = '<option value="">— Choisir une matière —</option>';
+                window.showToast('Impossible de charger les matières pour ce groupe.', 'warning');
+            }
+        }
 
     // ── Chargement des enseignants ──
     async function loadEnseignants() {
@@ -622,6 +646,12 @@
                 checkConflit();
             });
         }
+
+        // écouteur spécifique pour groupeId
+        document.getElementById('groupeId').addEventListener('change', function () {
+            const groupeId = this.value;
+            loadMatieresByGroupe(groupeId);
+        });
     });
 
     // ── Soumission ──
@@ -671,6 +701,9 @@
                 headers: { 'RequestVerificationToken': token },
                 body: formData
             });
+
+            const text = await response.text();
+            console.log("Réponse brute:", text);
 
             if (response.ok) {
                 window.showToast('Séance créée avec succès !', 'success');

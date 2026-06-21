@@ -18,6 +18,7 @@ namespace Gestion_EDT.Data
         public DbSet<Cycle>      Cycles      { get; set; }
         public DbSet<Parcours>   Parcours    { get; set; }
         public DbSet<Groupe>     Groupes     { get; set; }
+        public DbSet<ParcoursMatiere> ParcoursMatieres { get; set; }
 
         // ── NOUVELLE TABLE : comptes utilisateurs ────────────────────
         public DbSet<Utilisateur> Utilisateurs { get; set; }
@@ -106,6 +107,34 @@ namespace Gestion_EDT.Data
                 new Salle { Id = 3, num_salle = "LABO", capacite = 30,  BatimentId = 2 },
                 new Salle { Id = 4, num_salle = "AMP1", capacite = 200, BatimentId = 3 }
             );
+
+                                        // Relation many-to-many entre Parcours et Matiere
+            modelBuilder.Entity<Parcours>()
+                .HasMany(p => p.Matieres)
+                .WithMany(m => m.Parcours)
+                .UsingEntity<Dictionary<string, object>>(
+                    "Parcours_matieres",
+                    j => j.HasOne<Matiere>().WithMany().HasForeignKey("id_matiere"),
+                    j => j.HasOne<Parcours>().WithMany().HasForeignKey("id_parcours")
+            );
+
+            modelBuilder.Entity<ParcoursMatiere>(entity =>
+            {
+                entity.ToTable("parcours_matieres");
+                entity.HasKey(pm => new { pm.ParcoursId, pm.MatiereId });
+
+                entity.HasOne(pm => pm.Parcours)
+                    .WithMany(p => p.ParcoursMatieres)
+                    .HasForeignKey(pm => pm.ParcoursId)
+                    .HasConstraintName("FK_Parcours_matieres_Parcours")
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(pm => pm.Matiere)
+                    .WithMany(m => m.ParcoursMatieres)
+                    .HasForeignKey(pm => pm.MatiereId)
+                    .HasConstraintName("FK_Parcours_matieres_Matieres")
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
             // NOTE : le compte Admin par défaut n'est PAS créé ici via HasData
             // car le hash du mot de passe doit être généré au runtime.
