@@ -12,8 +12,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <style>
         :root {
-            --emit-primary: #3C3489;
-            --emit-primary-dark: #26215C;
+            --emit-primary: #0056b3;
+            --emit-primary-dark: #fff;
             --emit-accent: #0F6E56;
             --emit-bg: #F1EFE8;
         }
@@ -38,24 +38,20 @@
         }
 
         .login-header {
-            background: var(--emit-primary);
+            background: #0056b3;
             color: #fff;
             text-align: center;
             padding: 28px 24px 22px;
         }
 
         .login-header .logo {
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #fff;
-            color: var(--emit-primary);
-            font-weight: 700;
-            font-size: 22px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
+                border-radius: 500px;
+                width: 200px;
+                height: 100px;
+                opacity: 0.9;
+                justify-content: center;
+                display: flex;
+                margin-left: 80px;
         }
 
         .login-header h1 {
@@ -86,7 +82,7 @@
         }
 
         .btn-emit {
-            background: var(--emit-primary);
+            background: rgb(0, 100, 200);
             border: none;
             color: #fff;
             font-weight: 500;
@@ -97,7 +93,7 @@
         }
 
         .btn-emit:hover {
-            background: var(--emit-primary-dark);
+            background: var(--emit-primary);
             color: #fff;
         }
 
@@ -121,8 +117,8 @@
 <body>
     <div class="login-card">
         <div class="login-header">
-            <div class="logo">EMIT</div>
-            <h1>Gestion EDT — EMIT</h1>
+            <div class="logo"><img src="~/EMIT.jpg" alt="EMIT Logo" /></div>
+            <h1>Gestion EDT</h1>
             <p>Connexion à votre espace</p>
         </div>
 
