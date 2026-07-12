@@ -10,5 +10,5 @@
         public Batiment Batiment { get; set; }
 
         public ICollection<Seance> Seances { get; set; }
-}
+    }
 }

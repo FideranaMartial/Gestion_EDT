@@ -1,0 +1,76 @@
+@model Gestion_EDT.Models.Batiment
+@{
+    ViewData["Title"] = "Nouveau Bâtiment";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container" style="max-width:600px;margin-top:2rem;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon"><i class="bi bi-building-fill"></i></div>
+            <div>
+                <div class="form-card-title">Créer un nouveau bâtiment</div>
+                <div class="form-card-sub">Renseignez le nom du bâtiment</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form id="createForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="nom_batiment" class="form-label">Nom du bâtiment *</label>
+                    <input asp-for="nom_batiment" class="form-control" id="nom_batiment" required />
+                    <span asp-validation-for="nom_batiment" class="text-danger"></span>
+                </div>
+                <div class="form-footer">
+                    <button type="button" class="btn-primary-emit" id="btnSubmit"><i class="bi bi-check-lg"></i> Enregistrer</button>
+                    <a asp-action="Index" class="btn-secondary-emit">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnSubmit').addEventListener('click', function() {
+            const nom = document.getElementById('nom_batiment').value.trim();
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            if (!nom) {
+                window.showToast('Le nom est obligatoire.', 'warning');
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('nom_batiment', nom);
+
+            fetch('/Batiments/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: formData.toString()
+            })
+            .then(async r => {
+                if (r.ok) {
+                    window.showToast('Bâtiment créé avec succès.', 'success');
+                    setTimeout(() => window.location.href = '/Batiments', 800);
+                } else {
+                    try {
+                        const data = await r.json();
+                        if (data.errors) {
+                            window.showToast(data.errors.join('\n'), 'error');
+                        } else {
+                            window.showToast('Erreur lors de la création.', 'error');
+                        }
+                    } catch {
+                        window.showToast('Erreur inconnue.', 'error');
+                    }
+                }
+            })
+            .catch(err => window.showToast('Erreur réseau.', 'error'));
+        });
+    </script>
+}

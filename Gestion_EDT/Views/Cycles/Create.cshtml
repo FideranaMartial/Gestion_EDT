@@ -1,0 +1,97 @@
+@model Gestion_EDT.Models.Cycle
+@{
+    ViewData["Title"] = "Nouveau Cycle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container" style="max-width:600px;margin-top:2rem;">
+    <div class="form-card">
+        <div class="form-card-header">
+            <div class="form-card-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div>
+                <div class="form-card-title">Créer un nouveau cycle</div>
+                <div class="form-card-sub">Renseignez les informations du cycle</div>
+            </div>
+        </div>
+        <div class="form-card-body">
+            <form id="createForm">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+                <div class="form-group mb-3">
+                    <label asp-for="nom_cycle" class="form-label">Nom du cycle *</label>
+                    <input asp-for="nom_cycle" class="form-control" id="nom_cycle" required />
+                    <span asp-validation-for="nom_cycle" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="niveau" class="form-label">Niveau *</label>
+                    <select asp-for="niveau" class="form-control" id="niveau" required>
+                        <option value="">— Choisir —</option>
+                        <option value="L">Licence (L)</option>
+                        <option value="M">Master (M)</option>
+                        <option value="D">Doctorat (D)</option>
+                    </select>
+                    <span asp-validation-for="niveau" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="MentionId" class="form-label">Mention *</label>
+                    <select asp-for="MentionId" class="form-control" id="MentionId" asp-items="ViewBag.MentionId" required>
+                        <option value="">— Choisir —</option>
+                    </select>
+                    <span asp-validation-for="MentionId" class="text-danger"></span>
+                </div>
+                <div class="form-footer">
+                    <button type="button" class="btn-primary-emit" id="btnSubmit"><i class="bi bi-check-lg"></i> Enregistrer</button>
+                    <a asp-action="Index" class="btn-secondary-emit">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('btnSubmit').addEventListener('click', function() {
+            const nom = document.getElementById('nom_cycle').value.trim();
+            const niveau = document.getElementById('niveau').value;
+            const mentionId = parseInt(document.getElementById('MentionId').value);
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            if (!nom || !niveau || !mentionId) {
+                window.showToast('Tous les champs sont obligatoires.', 'warning');
+                return;
+            }
+
+            const formData = new URLSearchParams();
+            formData.append('nom_cycle', nom);
+            formData.append('niveau', niveau);
+            formData.append('MentionId', mentionId);
+
+            fetch('/Cycles/Create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken': token
+                },
+                body: formData.toString()
+            })
+            .then(async r => {
+                if (r.ok) {
+                    window.showToast('Cycle créé avec succès.', 'success');
+                    setTimeout(() => window.location.href = '/Cycles', 800);
+                } else {
+                    try {
+                        const data = await r.json();
+                        if (data.errors) {
+                            window.showToast(data.errors.join('\n'), 'error');
+                        } else {
+                            window.showToast('Erreur lors de la création.', 'error');
+                        }
+                    } catch {
+                        window.showToast('Erreur inconnue.', 'error');
+                    }
+                }
+            })
+            .catch(err => window.showToast('Erreur réseau.', 'error'));
+        });
+    </script>
+}

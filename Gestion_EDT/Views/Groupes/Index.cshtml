@@ -1,0 +1,247 @@
+@model IEnumerable<Gestion_EDT.Models.Groupe>
+@{
+    ViewData["Title"] = "Groupes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mentions-root animate-fadein">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+        <h1 style="font-size:22px;font-weight:700;">Gestion des Groupes</h1>
+        <a href="/Groupes/Create" class="btn-primary-emit"><i class="bi bi-plus-lg"></i> Nouveau groupe</a>
+    </div>
+
+    <div class="table-card">
+        <div id="table-skeleton" aria-hidden="true">
+            <div style="padding:14px 16px;border-bottom:1px solid rgba(115,185,230,0.1);">
+                <div class="skeleton" style="height:10px;width:120px;border-radius:3px;"></div>
+            </div>
+            @for (int i = 0; i < 4; i++) {
+                <div class="table-skel-row">
+                    <div class="skeleton" style="width:32px;height:32px;border-radius:8px;"></div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="skeleton" style="width:38px;height:38px;border-radius:10px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton" style="height:12px;width:60%;margin-bottom:7px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:9px;width:40%;border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton" style="height:26px;width:80px;border-radius:20px;"></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div id="table-real" style="display:none;">
+            <div class="table-responsive-emit">
+                <table class="table-emit">
+                    <thead>
+                        <tr><th>#</th><th>Nom</th><th>Code</th><th>Effectif</th><th>Parcours</th><th style="text-align:right;">Actions</th></tr>
+                    </thead>
+                    <tbody id="groupes-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Édition -->
+<div class="modal fade modal-emit" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Modifier le groupe</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="edit-id" />
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="edit-nom">Nom du groupe *</label>
+                        <input type="text" id="edit-nom" class="form-control" data-validate="required alpha min-length" data-min-length="2" maxlength="100" required />
+                        <div class="form-feedback-emit" id="edit-nom-feedback"></div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="edit-code">Code du groupe *</label>
+                        <input type="text" id="edit-code" class="form-control" data-validate="required alpha min-length" data-min-length="2" maxlength="10" required />
+                        <div class="form-feedback-emit" id="edit-code-feedback"></div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="edit-effectif">Effectif *</label>
+                        <input type="number" id="edit-effectif" class="form-control" data-validate="required positive-int" required />
+                        <div class="form-feedback-emit" id="edit-effectif-feedback"></div>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="edit-parcours">Parcours *</label>
+                        <select id="edit-parcours" class="form-control" data-validate="required" required>
+                            <option value="">— Choisir —</option>
+                        </select>
+                        <div class="form-feedback-emit" id="edit-parcours-feedback"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-emit" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn-primary-emit" id="saveEditBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Confirmation Suppression -->
+<div class="modal fade modal-emit" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Voulez-vous vraiment supprimer ce groupe ? Cette action est irréversible.</p>
+                <input type="hidden" id="delete-id" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-emit" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn-danger-emit" id="confirmDeleteBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const apiBase = '/Groupes';
+    let editModal, deleteModal;
+
+    function loadList() {
+        fetch(apiBase + '/GetAll')
+            .then(r => r.json())
+            .then(data => {
+                const tbody = document.getElementById('groupes-tbody');
+                tbody.innerHTML = data.map((g, i) => `
+                    <tr data-id="${g.id}">
+                        <td>${i+1}</td>
+                        <td><strong>${escapeHtml(g.nom)}</strong></td>
+                        <td>${escapeHtml(g.code)}</td>
+                        <td>${g.effectif}</td>
+                        <td>${escapeHtml(g.parcoursNom)}</td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon-emit edit-btn" data-id="${g.id}" title="Modifier"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn-icon-emit danger delete-btn" data-id="${g.id}" data-nom="${escapeHtml(g.nom)}" title="Supprimer"><i class="bi bi-trash3-fill"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+                document.getElementById('table-skeleton').style.display = 'none';
+                document.getElementById('table-real').style.display = 'block';
+                attachEvents();
+            })
+            .catch(err => window.showToast('Erreur chargement', 'error'));
+    }
+
+    function attachEvents() {
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.id)));
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('delete-id').value = btn.dataset.id;
+                document.getElementById('deleteMessage').innerHTML = `Voulez-vous vraiment supprimer le groupe <strong>"${btn.dataset.nom}"</strong> ? Cette action est irréversible.`;
+                deleteModal.show();
+            });
+        });
+    }
+
+    function openEditModal(id) {
+        fetch(apiBase + '/GetById/' + id)
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('edit-id').value = data.id;
+                document.getElementById('edit-nom').value = data.nom;
+                document.getElementById('edit-code').value = data.code;
+                document.getElementById('edit-effectif').value = data.effectif;
+                const sel = document.getElementById('edit-parcours');
+                sel.innerHTML = '<option value="">— Choisir —</option>';
+                data.parcours.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.textContent = p.nom;
+                    if (p.id === data.parcoursId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                editModal.show();
+            })
+            .catch(err => window.showToast('Erreur chargement', 'error'));
+    }
+
+    document.getElementById('saveEditBtn').addEventListener('click', function() {
+        const id = parseInt(document.getElementById('edit-id').value);
+        const nom = document.getElementById('edit-nom').value.trim();
+        const code = document.getElementById('edit-code').value.trim();
+        const effectif = parseInt(document.getElementById('edit-effectif').value);
+        const parcoursId = parseInt(document.getElementById('edit-parcours').value);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        if (!nom || !code || !effectif || !parcoursId) {
+            window.showToast('Tous les champs sont obligatoires.', 'warning');
+            return;
+        }
+
+        fetch(apiBase + '/Edit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+            body: JSON.stringify({ id, nom, code, effectif, parcoursId })
+        })
+        .then(r => {
+            if (r.ok) {
+                return r.json().then(data => {
+                    if (data.success) {
+                        editModal.hide();
+                        window.showToast(data.message, 'success');
+                        loadList();
+                    } else {
+                        window.showToast(data.message, 'error');
+                    }
+                });
+            } else {
+                return r.text().then(t => { throw new Error(t); });
+            }
+        })
+        .catch(err => window.showToast(err.message || 'Erreur', 'error'));
+    });
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        const id = parseInt(document.getElementById('delete-id').value);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        fetch(apiBase + '/Delete/' + id, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        })
+        .then(r => {
+            if (r.ok) {
+                return r.json().then(data => {
+                    if (data.success) {
+                        deleteModal.hide();
+                        window.showToast(data.message, 'success');
+                        loadList();
+                    } else {
+                        window.showToast(data.message, 'error');
+                    }
+                });
+            } else {
+                return r.text().then(t => { throw new Error(t); });
+            }
+        })
+        .catch(err => window.showToast(err.message || 'Erreur', 'error'));
+    });
+
+    function escapeHtml(str) { return window._emitEscapeHtml ? window._emitEscapeHtml(str) : str; }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        loadList();
+    });
+</script>
+}
