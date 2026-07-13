@@ -205,32 +205,43 @@ if (typeof bootstrap === 'undefined' || !bootstrap.Modal) {
      ════════════════════════════════════════ */
 
   function initActiveSidebarLink() {
-    const currentPath = window.location.pathname.toLowerCase();
-    const navLinks    = document.querySelectorAll('#sidebar .nav-link[data-path]');
-    navLinks.forEach(link => {
-      link.classList.remove('active');
-      const linkPath = (link.dataset.path || '').toLowerCase();
-      if (linkPath === '/' && (currentPath === '/' || currentPath === '/home' || currentPath === '/home/index')) {
-        link.classList.add('active');
-      } else if (linkPath !== '/' && currentPath.startsWith(linkPath)) {
-        link.classList.add('active');
-      }
-    });
-    if (!document.querySelector('#sidebar .nav-link.active')) {
-      const allLinks = document.querySelectorAll('#sidebar .nav-link[href]');
-      let bestMatch  = null;
-      let bestLen    = 0;
-      allLinks.forEach(link => {
-        const href = link.getAttribute('href');
-        if (!href || href === '#') return;
-        const hrefPath = href.split('?')[0].toLowerCase();
-        if (currentPath.startsWith(hrefPath) && hrefPath.length > bestLen) {
-          bestLen   = hrefPath.length;
-          bestMatch = link;
-        }
+      const currentPath = window.location.pathname.toLowerCase();
+      const navLinks = document.querySelectorAll('#sidebar .nav-link[data-path]');
+      let bestMatch = null;
+      let bestLength = -1;
+
+      navLinks.forEach(link => {
+          link.classList.remove('active');
+          const linkPath = (link.dataset.path || '').toLowerCase();
+          // Vérifier si le chemin actuel commence par le lien, ou si c'est une correspondance exacte
+          if (linkPath === '/' && (currentPath === '/' || currentPath === '/home' || currentPath === '/home/index')) {
+              bestMatch = link;
+              bestLength = 1; // le plus court
+          } else if (linkPath !== '/' && currentPath.startsWith(linkPath) && linkPath.length > bestLength) {
+              bestMatch = link;
+              bestLength = linkPath.length;
+          }
       });
-      if (bestMatch) bestMatch.classList.add('active');
-    }
+
+      if (bestMatch) {
+          bestMatch.classList.add('active');
+          return;
+      }
+
+      // Fallback : rechercher par href
+      const allLinks = document.querySelectorAll('#sidebar .nav-link[href]');
+      let bestHrefMatch = null;
+      let bestHrefLen = -1;
+      allLinks.forEach(link => {
+          const href = link.getAttribute('href');
+          if (!href || href === '#') return;
+          const hrefPath = href.split('?')[0].toLowerCase();
+          if (currentPath.startsWith(hrefPath) && hrefPath.length > bestHrefLen) {
+              bestHrefLen = hrefPath.length;
+              bestHrefMatch = link;
+          }
+      });
+      if (bestHrefMatch) bestHrefMatch.classList.add('active');
   }
 
 

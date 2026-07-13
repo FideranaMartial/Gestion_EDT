@@ -17,15 +17,17 @@
             </div>
         </div>
         <div class="page-header-actions">
-            <!-- Correction du lien : /Seances/Create au lieu de /Seance/Create -->
             <a id="btnNewSeance" href="/Seances/Create" class="btn-emit-primary">
                 <i class="bi bi-plus-lg me-2"></i>Nouvelle séance
             </a>
+            <button id="btnPrint" class="btn-emit-secondary" onclick="prepareAndPrint()" style="margin-left:8px;">
+                <i class="bi bi-printer me-2"></i>Imprimer PDF
+            </button>
         </div>
     </div>
 
     <!-- Filtres en cascade -->
-    <div class="card-emit filter-card mb-4">
+    <div class="card-emit filter-card mb-4" id="filterSection">
         <div class="filter-card-header">
             <i class="bi bi-funnel-fill me-2" style="color: var(--accent);"></i>
             <span>Filtrer l'affichage</span>
@@ -55,7 +57,7 @@
     </div>
 
     <!-- Légende -->
-    <div class="calendar-legend mb-3">
+    <div class="calendar-legend mb-3" id="legendSection">
         <div class="legend-item"><span class="legend-dot" style="background:#73B9E6;"></span><span>Cours magistral</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#34D399;"></span><span>TD</span></div>
         <div class="legend-item"><span class="legend-dot" style="background:#FBBF24;"></span><span>TP</span></div>
@@ -63,13 +65,18 @@
     </div>
 
     <!-- Calendrier -->
-    <div class="card-emit calendar-card">
+    <div class="card-emit calendar-card" id="calendarCard">
         <div id="calendar"></div>
     </div>
 </div>
 
+<!-- ═══════ ZONE D'IMPRESSION (masquée à l'écran) ═══════ -->
+<div id="printArea" style="display:none;">
+    <!-- Le tableau sera construit dynamiquement par JavaScript -->
+</div>
+
 <style>
-    /* ===== Styles déjà présents dans votre fichier (inchangés) ===== */
+    /* ===== Styles existants (inchangés) ===== */
     .planning-page { padding: 1.5rem; }
     .page-header-emit { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.75rem; }
     .page-header-left { display: flex; align-items: center; gap: 1rem; }
@@ -82,7 +89,6 @@
     @@media (max-width: 768px) { .filter-grid { grid-template-columns: 1fr; } }
     .filter-group { display: flex; flex-direction: column; gap: 6px; }
     .filter-label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-    .select-wrapper { position: relative; }
     .emit-select { width: 100%; background: rgba(23,37,84,0.6); border: 1px solid rgba(115,185,230,0.2); border-radius: 8px; color: var(--text-primary); font-family: var(--font-main); font-size: 0.88rem; padding: 0.55rem 2.2rem 0.55rem 0.8rem; appearance: none; cursor: pointer; transition: var(--transition); outline: none; }
     .emit-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(115,185,230,0.15); }
     .emit-select:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -96,7 +102,144 @@
         .page-header-emit { flex-direction: column; align-items: flex-start; }
         .page-header-actions { width: 100%; }
         .page-header-actions .btn-emit-primary { width: 100%; justify-content: center; }
+        .page-header-actions #btnPrint { width: 100%; margin-left: 0 !important; justify-content: center; margin-top: 0.5rem; }
     }
+
+    /* ─── Style du bouton Imprimer ─── */
+    .btn-emit-secondary {
+        background: rgba(115, 185, 230, 0.12);
+        border: 1px solid rgba(115, 185, 230, 0.25);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        font-family: var(--font-main);
+        font-weight: 500;
+        font-size: 0.88rem;
+        padding: 0.55rem 1.2rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: var(--transition);
+        text-decoration: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .btn-emit-secondary:hover {
+        background: rgba(115, 185, 230, 0.22);
+        border-color: rgba(115, 185, 230, 0.4);
+        transform: translateY(-1px);
+    }
+
+    /* ─── STYLES D'IMPRESSION ─── */
+    @@media print {
+    /* Cacher les éléments non imprimables */
+    #sidebar, #topbar, #btnNewSeance, #btnPrint,
+    #filterSection, #legendSection, .page-header-actions,
+    .page-header-left .page-icon-wrap, .page-title-emit, .page-subtitle-emit {
+        display: none !important;
+    }
+
+    /* Conteneur principal */
+    #main-content {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+    }
+    .planning-page { padding: 0 !important; }
+    .calendar-card { display: none !important; }
+
+    /* Zone d'impression */
+    #printArea {
+        display: block !important;
+        padding: 0.5cm !important;
+        margin: 0 auto;
+        max-width: 100%;
+        overflow: visible;
+        font-family: 'Segoe UI', 'DM Sans', sans-serif;
+    }
+
+    /* Mise en page paysage */
+    @@page {
+        size: landscape;
+        margin: 0.5cm;
+    }
+
+    /* En-tête */
+    .edt-header {
+        text-align: center;
+        margin-bottom: 8px;
+        border-bottom: 2px solid #222;
+        padding-bottom: 6px;
+    }
+    .edt-header h2 {
+        font-size: 14pt;
+        margin: 0;
+        font-weight: 700;
+        color: #000;
+    }
+    .edt-header .sub {
+        font-size: 9pt;
+        color: #333;
+        margin-top: 2px;
+    }
+    .edt-header .annee {
+        font-size: 8pt;
+        color: #555;
+    }
+
+    /* Tableau */
+    .edt-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 7pt; /* Police réduite */
+        table-layout: fixed; /* Colonnes fixes */
+        word-wrap: break-word;
+    }
+    .edt-table th, .edt-table td {
+        border: 1px solid #000;
+        padding: 2px 3px;
+        text-align: center;
+        vertical-align: middle;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .edt-table th {
+        background: #e0e7ef;
+        font-weight: 600;
+    }
+    .edt-table .heure-col {
+        width: 10%; /* Largeur réduite */
+        background: #f3f6fa;
+        font-weight: 500;
+        font-size: 7pt;
+    }
+    .edt-table .jour-col {
+        width: 18%; /* 100% - 10% = 90% / 5 = 18% */
+    }
+    .edt-table .matiere {
+        font-weight: 600;
+        font-size: 7.5pt;
+    }
+    .edt-table .prof {
+        font-size: 6.5pt;
+        color: #333;
+    }
+    .edt-table .empty-cell {
+        background: #fafbfc;
+    }
+    .edt-table .event-cell {
+        background: #f0f5ff;
+    }
+
+    /* Éviter les coupures */
+    .edt-table td, .edt-table th {
+        page-break-inside: avoid;
+    }
+    .edt-table tr {
+        page-break-inside: avoid;
+    }
+}
 </style>
 
 @section Scripts {
@@ -212,9 +355,6 @@
                             return;
                         }
                         try {
-                            // Utiliser l'action existante de SeancesController ou PlanningController
-                            // On suppose que /Seances/GetSeancesJson?groupeId=... existe
-                            // Pour l'instant on utilise un fetch vers une API (à adapter)
                             const response = await fetch(`/Seances/GetSeancesJson?groupeId=${groupeId}`);
                             if (!response.ok) throw new Error('Erreur chargement séances');
                             const seances = await response.json();
@@ -243,6 +383,168 @@
                 parcoursSelect.addEventListener('change', () => loadGroupes(parcoursSelect.value));
                 groupeSelect.addEventListener('change', () => { if (calendar) calendar.refetchEvents(); });
             }
+
+            // ──────────────────────────────────────────────────────────────
+            //  PRÉPARATION ET IMPRESSION DU TABLEAU ACADÉMIQUE
+            // ──────────────────────────────────────────────────────────────
+window.prepareAndPrint = function() {
+    if (!calendar) {
+        window.showToast('Le calendrier n\'est pas encore chargé.', 'error');
+        return;
+    }
+
+    const events = calendar.getEvents();
+    if (events.length === 0) {
+        window.showToast('Aucune séance à imprimer pour ce filtre.', 'warning');
+        return;
+    }
+
+    const mentionText = mentionSelect.options[mentionSelect.selectedIndex]?.text || 'Toutes mentions';
+    const parcoursText = parcoursSelect.options[parcoursSelect.selectedIndex]?.text || 'Tous parcours';
+    const groupeText = groupeSelect.options[groupeSelect.selectedIndex]?.text || 'Tous groupes';
+
+    const printArea = document.getElementById('printArea');
+
+    const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
+    const heures = [];
+    for (let h = 7; h < 18; h++) {
+        heures.push(h);
+    }
+
+    // Grille : grid[jourIndex][heureIndex] = événement ou null
+    const grid = Array.from({ length: 5 }, () => Array(heures.length).fill(null));
+
+    events.forEach(ev => {
+        const startStr = ev.startStr;
+        const endStr = ev.endStr;
+        if (!startStr || !endStr) return;
+
+        const [datePart, timePart] = startStr.split('T');
+        const [year, month, day] = datePart.split('-').map(Number);
+        const [hour, minute] = timePart.split(':').map(Number);
+
+        const dateObj = new Date(year, month - 1, day);
+        const dayOfWeek = dateObj.getDay();
+        const jourIndex = dayOfWeek - 1;
+        if (jourIndex < 0 || jourIndex > 4) return;
+
+        const [endDatePart, endTimePart] = endStr.split('T');
+        const [endHour, endMinute] = endTimePart.split(':').map(Number);
+
+        const heureDebut = hour + minute / 60;
+        const heureFin = endHour + endMinute / 60;
+        const debut = Math.floor(heureDebut);
+        const fin = Math.ceil(heureFin);
+        if (debut < 7 || fin > 18) return;
+
+        const heureIndex = debut - 7;
+        if (heureIndex >= 0 && heureIndex < heures.length) {
+            // Si un événement existe déjà à cette position, on le stocke dans un tableau
+            if (!grid[jourIndex][heureIndex]) {
+                grid[jourIndex][heureIndex] = [];
+            }
+            if (!Array.isArray(grid[jourIndex][heureIndex])) {
+                grid[jourIndex][heureIndex] = [grid[jourIndex][heureIndex]];
+            }
+            grid[jourIndex][heureIndex].push({
+                titre: ev.title || 'Séance',
+                prof: ev.extendedProps?.professeur || '—',
+                rowspan: fin - debut,
+                debut: debut,
+                fin: fin
+            });
+        }
+    });
+
+    // Génération du HTML avec rowspan et gestion des sauts
+    let html = `
+    <div class="edt-header">
+        <h2>EMPLOI DU TEMPS</h2>
+        <div class="sub">MENTION : ${mentionText} &nbsp;|&nbsp; PARCOURS : ${parcoursText} &nbsp;|&nbsp; GROUPE : ${groupeText}</div>
+        <div class="annee">ANNÉE UNIVERSITAIRE : ${new Date().getFullYear()} – ${new Date().getFullYear() + 1}</div>
+    </div>
+    <table class="edt-table">
+        <thead>
+            <tr>
+                <th class="heure-col">HORAIRES</th>
+                ${jours.map(j => `<th class="jour-col">${j}</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    let skipRows = [0, 0, 0, 0, 0];
+    let skipEventIndices = [null, null, null, null, null]; // Pour savoir quel événement est en cours
+
+    for (let hIndex = 0; hIndex < heures.length; hIndex++) {
+        const h = heures[hIndex];
+        const label = h.toString().padStart(2, '0') + 'h00 - ' + (h+1).toString().padStart(2, '0') + 'h00';
+        html += `<tr><td class="heure-col">${label}</td>`;
+
+        for (let j = 0; j < 5; j++) {
+            if (skipRows[j] > 0) {
+                skipRows[j]--;
+                if (skipRows[j] === 0) skipEventIndices[j] = null;
+                continue;
+            }
+
+            const cell = grid[j][hIndex];
+            if (cell && Array.isArray(cell)) {
+                // Prendre le premier événement de la liste (le plus long ou le plus important)
+                // Pour l'instant on prend le premier
+                const evt = cell[0];
+                const rowspan = evt.rowspan;
+                if (rowspan > 1) {
+                    skipRows[j] = rowspan - 1;
+                    skipEventIndices[j] = evt;
+                    html += `<td class="event-cell" rowspan="${rowspan}">
+                        <div class="matiere">${evt.titre}</div>
+                        <div class="prof">${evt.prof}</div>
+                    </td>`;
+                } else {
+                    html += `<td class="event-cell">
+                        <div class="matiere">${evt.titre}</div>
+                        <div class="prof">${evt.prof}</div>
+                    </td>`;
+                }
+            } else if (cell && typeof cell === 'object') {
+                // Cas d'un événement unique
+                const evt = cell;
+                const rowspan = evt.rowspan;
+                if (rowspan > 1) {
+                    skipRows[j] = rowspan - 1;
+                    skipEventIndices[j] = evt;
+                    html += `<td class="event-cell" rowspan="${rowspan}">
+                        <div class="matiere">${evt.titre}</div>
+                        <div class="prof">${evt.prof}</div>
+                    </td>`;
+                } else {
+                    html += `<td class="event-cell">
+                        <div class="matiere">${evt.titre}</div>
+                        <div class="prof">${evt.prof}</div>
+                    </td>`;
+                }
+            } else {
+                html += `<td class="empty-cell"></td>`;
+            }
+        }
+        html += `</tr>`;
+    }
+
+    html += `
+        </tbody>
+    </table>
+    <div style="text-align:right;font-size:9pt;margin-top:8px;color:#555;">
+        Édité le ${new Date().toLocaleDateString('fr-FR')}
+    </div>
+    `;
+
+    printArea.innerHTML = html;
+
+    setTimeout(() => {
+        window.print();
+    }, 200);
+};
 
             document.addEventListener('DOMContentLoaded', async () => {
                 await loadMentions();

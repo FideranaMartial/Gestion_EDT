@@ -1,0 +1,240 @@
+@model IEnumerable<Gestion_EDT.Models.ParcoursMatiere>
+@{
+    ViewData["Title"] = "Affectation Matières - Parcours";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="mentions-root animate-fadein">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+        <h1 style="font-size:22px;font-weight:700;">Affectation Matières - Parcours</h1>
+        <a href="/ParcoursMatieres/Create" class="btn-primary-emit"><i class="bi bi-plus-lg"></i> Nouvelle affectation</a>
+    </div>
+
+    <div class="table-card">
+        <div id="table-skeleton" aria-hidden="true">
+            <div style="padding:14px 16px;border-bottom:1px solid rgba(115,185,230,0.1);">
+                <div class="skeleton" style="height:10px;width:120px;border-radius:3px;"></div>
+            </div>
+            @for (int i = 0; i < 4; i++) {
+                <div class="table-skel-row">
+                    <div class="skeleton" style="width:32px;height:32px;border-radius:8px;"></div>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div class="skeleton" style="width:38px;height:38px;border-radius:10px;flex-shrink:0;"></div>
+                        <div style="flex:1;">
+                            <div class="skeleton" style="height:12px;width:60%;margin-bottom:7px;border-radius:3px;"></div>
+                            <div class="skeleton" style="height:9px;width:40%;border-radius:3px;"></div>
+                        </div>
+                    </div>
+                    <div class="skeleton" style="height:26px;width:80px;border-radius:20px;"></div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                        <div class="skeleton" style="width:34px;height:34px;border-radius:8px;"></div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div id="table-real" style="display:none;">
+            <div class="table-responsive-emit">
+                <table class="table-emit">
+                    <thead>
+                        <tr><th>#</th><th>Parcours</th><th>Niveau</th><th>Matière</th><th>Code</th><th style="text-align:right;">Actions</th></tr>
+                    </thead>
+                    <tbody id="associations-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Édition -->
+<div class="modal fade modal-emit" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Modifier l'association</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="edit-parcoursId" />
+                    <input type="hidden" id="edit-matiereId" />
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="edit-matiere">Nouvelle matière *</label>
+                        <select id="edit-matiere" class="form-control" required>
+                            <option value="">— Choisir —</option>
+                        </select>
+                        <div class="form-feedback-emit" id="edit-matiere-feedback"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-emit" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn-primary-emit" id="saveEditBtn">Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Confirmation Suppression -->
+<div class="modal fade modal-emit" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Confirmer la suppression</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="deleteMessage">Voulez-vous vraiment supprimer cette association ?</p>
+                <input type="hidden" id="delete-parcoursId" />
+                <input type="hidden" id="delete-matiereId" />
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary-emit" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn-danger-emit" id="confirmDeleteBtn">Supprimer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const apiBase = '/ParcoursMatieres';
+    let editModal, deleteModal;
+
+    function loadList() {
+        fetch(apiBase + '/GetAll')
+            .then(r => r.json())
+            .then(data => {
+                const tbody = document.getElementById('associations-tbody');
+                tbody.innerHTML = data.map((a, i) => `
+                    <tr data-parcoursid="${a.parcoursId}" data-matiereid="${a.matiereId}">
+                        <td>${i+1}</td>
+                        <td><strong>${escapeHtml(a.parcoursNom)}</strong></td>
+                        <td>${escapeHtml(a.cycleNiveau)}</td>
+                        <td>${escapeHtml(a.matiereIntitule)}</td>
+                        <td>${escapeHtml(a.matiereCode)}</td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon-emit edit-btn" data-parcoursid="${a.parcoursId}" data-matiereid="${a.matiereId}" title="Modifier"><i class="bi bi-pencil-fill"></i></button>
+                            <button class="btn-icon-emit danger delete-btn" data-parcoursid="${a.parcoursId}" data-matiereid="${a.matiereId}" data-nom="${escapeHtml(a.matiereIntitule)}" title="Supprimer"><i class="bi bi-trash3-fill"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+                document.getElementById('table-skeleton').style.display = 'none';
+                document.getElementById('table-real').style.display = 'block';
+                attachEvents();
+            })
+            .catch(err => window.showToast('Erreur chargement', 'error'));
+    }
+
+    function attachEvents() {
+        // Événements pour les boutons Modifier
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', () => openEditModal(parseInt(btn.dataset.parcoursid), parseInt(btn.dataset.matiereid)));
+        });
+        // Événements pour les boutons Supprimer
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.getElementById('delete-parcoursId').value = btn.dataset.parcoursid;
+                document.getElementById('delete-matiereId').value = btn.dataset.matiereid;
+                document.getElementById('deleteMessage').innerHTML = `Voulez-vous vraiment supprimer l'association <strong>"${btn.dataset.nom}"</strong> avec ce parcours ?`;
+                deleteModal.show();
+            });
+        });
+    }
+
+    function openEditModal(parcoursId, matiereId) {
+        document.getElementById('edit-parcoursId').value = parcoursId;
+        document.getElementById('edit-matiereId').value = matiereId;
+        // Peupler la liste des matières (toutes)
+        fetch('/Matieres/GetAll')
+            .then(r => r.json())
+            .then(matieres => {
+                const sel = document.getElementById('edit-matiere');
+                sel.innerHTML = '<option value="">— Choisir —</option>';
+                matieres.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.intitule;
+                    if (m.id === matiereId) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+                editModal.show();
+            })
+            .catch(err => window.showToast('Erreur chargement des matières', 'error'));
+    }
+
+    // Sauvegarde de l'édition
+    document.getElementById('saveEditBtn').addEventListener('click', function() {
+        const parcoursId = parseInt(document.getElementById('edit-parcoursId').value);
+        const oldMatiereId = parseInt(document.getElementById('edit-matiereId').value);
+        const newMatiereId = parseInt(document.getElementById('edit-matiere').value);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        if (!newMatiereId) {
+            window.showToast('Veuillez sélectionner une matière.', 'warning');
+            return;
+        }
+        if (newMatiereId === oldMatiereId) {
+            window.showToast('Aucun changement détecté.', 'info');
+            editModal.hide();
+            return;
+        }
+
+        const formData = new URLSearchParams();
+        formData.append('parcoursId', parcoursId);
+        formData.append('oldMatiereId', oldMatiereId);
+        formData.append('newMatiereId', newMatiereId);
+
+        fetch(apiBase + '/Edit', {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token },
+            body: formData.toString()
+        })
+        .then(r => {
+            if (r.ok) {
+                editModal.hide();
+                window.showToast('Association modifiée.', 'success');
+                loadList();
+            } else {
+                return r.text().then(t => { throw new Error(t); });
+            }
+        })
+        .catch(err => window.showToast(err.message || 'Erreur', 'error'));
+    });
+
+    // Confirmation suppression
+    document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        const parcoursId = parseInt(document.getElementById('delete-parcoursId').value);
+        const matiereId = parseInt(document.getElementById('delete-matiereId').value);
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        const params = new URLSearchParams();
+        params.append('parcoursId', parcoursId);
+        params.append('matiereId', matiereId);
+
+        fetch(apiBase + '/Delete?' + params.toString(), {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        })
+        .then(r => {
+            if (r.ok) {
+                deleteModal.hide();
+                window.showToast('Association supprimée.', 'success');
+                loadList();
+            } else {
+                return r.text().then(t => { throw new Error(t); });
+            }
+        })
+        .catch(err => window.showToast(err.message || 'Erreur', 'error'));
+    });
+
+    function escapeHtml(str) { return window._emitEscapeHtml ? window._emitEscapeHtml(str) : str; }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        loadList();
+    });
+</script>
+}
